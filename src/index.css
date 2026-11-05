@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  body {
+    @apply bg-obsidian-950 text-slate-100 antialiased selection:bg-gold-accent selection:text-black;
+    overflow-x: hidden;
+  }
+}
+
+/* ─────────────────────────────────────────────────────
+   Custom Scrollbar
+   ───────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0D12;
+}
+::-webkit-scrollbar-thumb {
+  background: #1F2430;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8B9DFF;
+}
+
+/* ─────────────────────────────────────────────────────
+   Glass Panels
+   ───────────────────────────────────────────────────── */
+/* Perf: no backdrop-filter — blurring what's behind a panel is recomputed every
+   frame anything underneath moves (video, WebGL, scroll). Near-opaque fills instead. */
+.glass-panel {
+  background: rgba(16, 19, 26, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-glow {
+  background: rgba(16, 19, 26, 0.96);
+  border: 1px solid rgba(139, 157, 255, 0.3);
+  box-shadow: 0 0 30px -5px rgba(139, 157, 255, 0.12);
+}
+
+/* ─────────────────────────────────────────────────────
+   Scroll reveals — toggled via [data-shown]; compositor-only properties
+   ───────────────────────────────────────────────────── */
+.reveal-comp {
+  opacity: 0.25;
+  transition: opacity 0.5s ease, border-color 0.5s ease;
+}
+.reveal-comp[data-shown] {
+  opacity: 1;
+}
+/* Tray stack: all trays share one grid cell; only the active tray is visible. */
+.tray-stack { display: grid; align-items: center; }
+.tray-stack > .tray { grid-area: 1 / 1; }
+.tray {
+  background: linear-gradient(180deg, #131722 0%, #0E1118 100%);
+  border: 1px solid #1F2430;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -14px 24px -18px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  pointer-events: none;
+  transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tray[data-active] { opacity: 1; transform: none; pointer-events: auto; }
+
+/* Skill card — mirrors the 3D tool-tile face: inset frame + accent corner ticks. */
+.tool-card {
+  position: relative;
+  padding: 14px 14px 13px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #171C27 0%, #0B0E14 100%);
+  box-shadow: inset 0 0 0 1px rgba(139, 157, 255, 0.22), 0 10px 22px -14px rgba(0, 0, 0, 0.9);
+}
+.tool-card::before,
+.tool-card::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: #8B9DFF;
+  border-style: solid;
+  transition: width 0.25s ease, height 0.25s ease;
+}
+.tool-card::before { top: 0; left: 0; border-width: 2px 0 0 2px; border-top-left-radius: 6px; }
+.tool-card::after { bottom: 0; right: 0; border-width: 0 2px 2px 0; border-bottom-right-radius: 6px; }
+.tool-card:hover { box-shadow: inset 0 0 0 1px rgba(139, 157, 255, 0.5), 0 14px 26px -14px rgba(0, 0, 0, 0.9); }
+.tool-card:hover::before,
+.tool-card:hover::after { width: 22px; height: 22px; }
+.toolbox-tab[data-active] { background: #E6E8EE; color: #0B0D12; }
+.reveal-card {
+  /* 0.001, not 0: keeps the card painted ahead of time so its first reveal costs no raster work */
+  opacity: 0.001;
+  transform: translate3d(0, 12px, 0);
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease;
+}
+.reveal-card[data-shown] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ─────────────────────────────────────────────────────
+   Reduced Motion
+   ───────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
