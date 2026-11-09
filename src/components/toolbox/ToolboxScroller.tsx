@@ -201,7 +201,8 @@ export const ToolboxScroller: React.FC = () => {
       sceneMoving = true;
       handle.kick();
     };
-    window.addEventListener('resize', onResize);
+    const ro = new ResizeObserver(onResize);
+    ro.observe(host);
     host.addEventListener('mousemove', onMove, { passive: true });
     host.addEventListener('mouseleave', onLeave, { passive: true });
 
@@ -209,7 +210,7 @@ export const ToolboxScroller: React.FC = () => {
       if (hasIdle) window.cancelIdleCallback(idleId);
       else clearTimeout(idleId);
       handle.stop();
-      window.removeEventListener('resize', onResize);
+      ro.disconnect();
       host.removeEventListener('mousemove', onMove);
       host.removeEventListener('mouseleave', onLeave);
       scene?.dispose();
@@ -237,7 +238,7 @@ export const ToolboxScroller: React.FC = () => {
       className="relative w-full bg-obsidian-950"
       style={{ height: webGl ? `${SECTION_HEIGHT_VH}vh` : 'auto' }}
     >
-      <div className={webGl ? 'sticky top-0 h-screen w-full overflow-hidden' : 'relative w-full min-h-screen'}>
+      <div className={webGl ? 'sticky top-0 h-viewport w-full overflow-hidden' : 'relative w-full min-h-screen'}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_55%,rgba(200, 242, 92,0.07),transparent_60%)]" />
 
         {/* 3D case */}

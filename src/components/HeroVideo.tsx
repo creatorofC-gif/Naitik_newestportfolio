@@ -66,14 +66,14 @@ export const HeroVideo: React.FC = () => {
   return (
     <section id="hero" ref={sectionRef} className="relative min-h-[140vh] pb-16">
       {/* Full-bleed video background with scroll-driven scaling */}
-      <div className="sticky top-0 h-screen w-screen inset-0 overflow-hidden flex items-center justify-center pointer-events-none z-0">
+      <div className="sticky top-0 h-viewport w-screen inset-0 overflow-hidden flex items-center justify-center pointer-events-none z-0">
         <motion.div
           style={{
             scale: videoScale,
             x: videoX,
             y: videoY,
           }}
-          className="relative w-screen h-screen inset-0 overflow-hidden rounded-3xl will-change-transform"
+          className="relative w-screen h-viewport inset-0 overflow-hidden rounded-3xl will-change-transform"
         >
           <video
             ref={videoRef}

@@ -17,7 +17,6 @@ export const CurtainIntro: React.FC<{ onComplete: () => void }> = ({ onComplete 
   const last = rest.join(' ');
 
   useEffect(() => {
-    document.documentElement.style.overflow = 'hidden';
     const duration = reduced ? 300 : 1900;
     const start = performance.now();
     let raf = 0;
@@ -42,10 +41,31 @@ export const CurtainIntro: React.FC<{ onComplete: () => void }> = ({ onComplete 
     onComplete();
     const t = setTimeout(() => {
       setDone(true);
-      document.documentElement.style.overflow = '';
     }, reduced ? 200 : 1100);
     return () => clearTimeout(t);
   }, [opening, onComplete, reduced]);
+
+  // Lock scrolling until the curtain is gone. iOS ignores overflow:hidden for touch scrolling,
+  // so pin the body (we're always at the top during the intro, so pinning causes no jump).
+  useEffect(() => {
+    if (done) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const block = (e: Event) => e.preventDefault();
+    html.style.overflow = 'hidden';
+    html.style.touchAction = 'none';
+    Object.assign(body.style, { position: 'fixed', top: '0', left: '0', right: '0', overflow: 'hidden' });
+    window.addEventListener('touchmove', block, { passive: false });
+    window.addEventListener('wheel', block, { passive: false });
+    return () => {
+      html.style.overflow = '';
+      html.style.touchAction = '';
+      Object.assign(body.style, { position: '', top: '', left: '', right: '', overflow: '' });
+      window.removeEventListener('touchmove', block);
+      window.removeEventListener('wheel', block);
+      window.scrollTo(0, 0);
+    };
+  }, [done]);
 
   if (done) return null;
 

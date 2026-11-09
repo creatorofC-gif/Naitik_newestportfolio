@@ -177,7 +177,7 @@ export const Experience: React.FC = () => {
 
   return (
     <section id="experience" ref={sectionRef} aria-label="Experience" className="relative bg-obsidian-950" style={{ height: '175vh' }}>
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div className="sticky top-0 h-viewport overflow-hidden">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(200, 242, 92,0.08),transparent_60%)]" />
 
         <div className="relative mx-auto flex h-full max-w-6xl flex-col px-5 pb-6 pt-8 md:px-10 md:pt-10">

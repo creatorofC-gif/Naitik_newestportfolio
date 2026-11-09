@@ -210,3 +210,7 @@
   color: #0E1012;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 0 #6E7682, 0 10px 22px -14px rgba(0, 0, 0, 0.8);
 }
+
+/* Pinned scroll viewports: iOS changes the visible height as its toolbar shows/hides.
+   100svh (small viewport) stays constant, so pinned scenes don't resize or get cut off mid-scroll. */
+.h-viewport { height: 100vh; height: 100svh; }

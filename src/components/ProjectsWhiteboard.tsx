@@ -395,7 +395,7 @@ export const ProjectsWhiteboard: React.FC = () => {
       className="relative bg-obsidian-950"
       style={{ height: `${100 + projects.length * PER_PROJECT_VH}vh` }}
     >
-      <div className="sticky top-0 flex h-screen flex-col overflow-hidden px-4 pb-6 pt-8 md:px-10 md:pt-10">
+      <div className="sticky top-0 flex h-viewport flex-col overflow-hidden px-4 pb-6 pt-8 md:px-10 md:pt-10">
         {/* Wall light */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,rgba(227, 230, 234,0.06),transparent_65%)]" />
 

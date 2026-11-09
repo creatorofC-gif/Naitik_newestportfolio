@@ -188,7 +188,7 @@ export const ContactDirect: React.FC = () => {
 
   return (
     <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950" style={{ height: '185vh' }}>
-      <div className="sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6">
+      <div className="sticky top-0 flex h-viewport flex-col items-center justify-center overflow-hidden px-4 py-6">
         {/* Desk light */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(200, 242, 92,0.09),transparent_60%)]" />
 
