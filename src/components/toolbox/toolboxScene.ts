@@ -231,17 +231,17 @@ function drawTileFace(canvas: HTMLCanvasElement, skill: Skill, code: string, lab
   if (!ctx) return;
   const { width: W, height: H } = canvas;
   const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, '#171c27');
-  bg.addColorStop(1, '#0b0e14');
+  bg.addColorStop(0, '#20242A');
+  bg.addColorStop(1, '#0F1114');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = 'rgba(139, 157, 255,0.35)';
+  ctx.strokeStyle = 'rgba(200, 242, 92,0.35)';
   ctx.lineWidth = 2;
   ctx.strokeRect(6, 6, W - 12, H - 12);
 
   // Corner registration ticks
-  ctx.strokeStyle = '#8B9DFF';
+  ctx.strokeStyle = '#C8F25C';
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(6, 30);
@@ -254,7 +254,7 @@ function drawTileFace(canvas: HTMLCanvasElement, skill: Skill, code: string, lab
 
   ctx.textBaseline = 'alphabetic';
   ctx.font = `500 21px ${FONT_MONO}`;
-  ctx.fillStyle = '#8B9DFF';
+  ctx.fillStyle = '#C8F25C';
   ctx.textAlign = 'left';
   ctx.fillText(code, 30, 50);
   ctx.textAlign = 'right';
@@ -271,7 +271,7 @@ function drawTileFace(canvas: HTMLCanvasElement, skill: Skill, code: string, lab
   ctx.fillStyle = '#f8fafc';
   ctx.fillText(skill.name, 30, 136);
 
-  ctx.fillStyle = '#8B9DFF';
+  ctx.fillStyle = '#C8F25C';
   ctx.fillRect(30, 160, 36, 2);
 
   ctx.font = `400 23px ${FONT_BODY}`;
@@ -284,21 +284,21 @@ function drawLidDecal(canvas: HTMLCanvasElement) {
   if (!ctx) return;
   const { width: W, height: H } = canvas;
   ctx.clearRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(139, 157, 255,0.5)';
+  ctx.strokeStyle = 'rgba(200, 242, 92,0.5)';
   ctx.lineWidth = 2;
   ctx.strokeRect(4, 4, W - 8, H - 8);
-  ctx.strokeStyle = 'rgba(139, 157, 255,0.18)';
+  ctx.strokeStyle = 'rgba(200, 242, 92,0.18)';
   ctx.strokeRect(16, 16, W - 32, H - 32);
   const grad = ctx.createLinearGradient(0, 40, 0, 180);
-  grad.addColorStop(0, '#B4C0FF');
-  grad.addColorStop(1, '#5566D6');
+  grad.addColorStop(0, '#DDF89B');
+  grad.addColorStop(1, '#8FB52E');
   ctx.fillStyle = grad;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   ctx.font = `700 120px ${FONT_DISPLAY}`;
   ctx.fillText('NG', W / 2, 162);
   ctx.font = `500 20px ${FONT_MONO}`;
-  ctx.fillStyle = 'rgba(139, 157, 255,0.75)';
+  ctx.fillStyle = 'rgba(200, 242, 92,0.75)';
   ctx.fillText('ENGINEERING  TOOLKIT', W / 2, 212);
 }
 
@@ -306,14 +306,14 @@ function drawFrontPlate(canvas: HTMLCanvasElement, modules: number, tools: numbe
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const { width: W, height: H } = canvas;
-  ctx.fillStyle = '#0b0e14';
+  ctx.fillStyle = '#0F1114';
   ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(139, 157, 255,0.55)';
+  ctx.strokeStyle = 'rgba(200, 242, 92,0.55)';
   ctx.lineWidth = 2;
   ctx.strokeRect(3, 3, W - 6, H - 6);
   ctx.textBaseline = 'middle';
   ctx.font = `500 26px ${FONT_MONO}`;
-  ctx.fillStyle = '#8B9DFF';
+  ctx.fillStyle = '#C8F25C';
   ctx.textAlign = 'left';
   ctx.fillText('N.GUPTA', 26, H / 2);
   ctx.textAlign = 'right';
@@ -325,7 +325,7 @@ function makeFloorTexture() {
   const c = makeCanvas(1024, 1024);
   const ctx = c.getContext('2d');
   if (ctx) {
-    ctx.strokeStyle = 'rgba(139, 157, 255,0.16)';
+    ctx.strokeStyle = 'rgba(168, 176, 186,0.14)'; // titanium grid
     ctx.lineWidth = 1;
     for (let i = 0; i <= 1024; i += 32) {
       ctx.beginPath();
@@ -335,7 +335,7 @@ function makeFloorTexture() {
       ctx.lineTo(1024, i + 0.5);
       ctx.stroke();
     }
-    ctx.strokeStyle = 'rgba(139, 157, 255,0.32)';
+    ctx.strokeStyle = 'rgba(168, 176, 186,0.26)';
     for (let i = 0; i <= 1024; i += 128) {
       ctx.beginPath();
       ctx.moveTo(i + 0.5, 0);
@@ -386,7 +386,7 @@ export class ToolboxScene {
   private readonly lidPivot = new THREE.Group();
   private readonly latches: THREE.Group[] = [];
   private readonly trays: { front: TrayRig; back: TrayRig };
-  private readonly innerLight = new THREE.PointLight(0xb4c0ff, 0, 4, 1.6);
+  private readonly innerLight = new THREE.PointLight(0xe8f7c4, 0, 4, 1.6);
   private readonly tiles: ToolTile[] = [];
   private readonly redrawables: (() => void)[] = [];
 
@@ -462,9 +462,9 @@ export class ToolboxScene {
   private addLights() {
     const key = new THREE.DirectionalLight(0xfff1dc, 2.4);
     key.position.set(4, 6, 5);
-    const rim = new THREE.DirectionalLight(0x8b9dff, 2.6);
+    const rim = new THREE.DirectionalLight(0xdfe6ee, 2.2);
     rim.position.set(-5, 3.5, -4);
-    const fill = new THREE.DirectionalLight(0x8fa3c7, 0.55);
+    const fill = new THREE.DirectionalLight(0xa8b0ba, 0.55);
     fill.position.set(-4, 2, 5);
     this.innerLight.position.set(0, 0.95, 0);
     this.scene.add(key, rim, fill, this.innerLight);
@@ -488,12 +488,12 @@ export class ToolboxScene {
 
   private buildCase(categories: SkillCategory[]) {
     // Standard (not Physical/clearcoat) materials: one lighting pass per fragment instead of two.
-    const shell = new THREE.MeshStandardMaterial({ color: 0x161a23, metalness: 0.55, roughness: 0.32 });
-    const trayShell = new THREE.MeshStandardMaterial({ color: 0x1c212c, metalness: 0.5, roughness: 0.38 });
-    const interior = new THREE.MeshStandardMaterial({ color: 0x0b0d12, roughness: 0.95, metalness: 0.05 });
-    const gold = new THREE.MeshStandardMaterial({ color: 0x8b9dff, metalness: 1, roughness: 0.28 });
-    const steel = new THREE.MeshStandardMaterial({ color: 0x3a4456, metalness: 0.9, roughness: 0.32 });
-    const rubber = new THREE.MeshStandardMaterial({ color: 0x0d1016, metalness: 0.1, roughness: 0.75 });
+    const shell = new THREE.MeshStandardMaterial({ color: 0x23272d, metalness: 0.72, roughness: 0.42 }); // matte gunmetal
+    const trayShell = new THREE.MeshStandardMaterial({ color: 0x2a2f36, metalness: 0.65, roughness: 0.46 });
+    const interior = new THREE.MeshStandardMaterial({ color: 0x0e1012, roughness: 0.95, metalness: 0.05 });
+    const gold = new THREE.MeshStandardMaterial({ color: 0xc3cad3, metalness: 1, roughness: 0.34 }); // brushed titanium hardware
+    const steel = new THREE.MeshStandardMaterial({ color: 0x5a626d, metalness: 0.9, roughness: 0.32 });
+    const rubber = new THREE.MeshStandardMaterial({ color: 0x0f1113, metalness: 0.1, roughness: 0.75 });
 
     // Base
     const base = createShell(BASE.w, BASE.h, BASE.d, BASE.wall, shell, interior);
@@ -676,7 +676,7 @@ export class ToolboxScene {
     const bodyGeo = new RoundedBoxGeometry(TILE.w, TILE.h, TILE.depth, 2, 0.022);
     const faceGeo = new THREE.PlaneGeometry(FACE.w, FACE.h);
     const glowGeo = new THREE.PlaneGeometry(TILE.w + 0.08, TILE.h + 0.08);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x161a23, metalness: 0.6, roughness: 0.4 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1c2026, metalness: 0.6, roughness: 0.4 });
     const anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
 
     let globalIndex = 0;
@@ -708,7 +708,7 @@ export class ToolboxScene {
         face.position.z = TILE.depth / 2 + 0.001;
         const glow = new THREE.Mesh(
           glowGeo,
-          new THREE.MeshBasicMaterial({ color: 0x8b9dff, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
+          new THREE.MeshBasicMaterial({ color: 0xc8f25c, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
         );
         glow.position.z = -TILE.depth / 2 - 0.004;
         glow.visible = false;

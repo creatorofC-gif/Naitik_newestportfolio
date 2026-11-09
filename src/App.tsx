@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { CurtainIntro } from './components/CurtainIntro';
 import { HeroVideo } from './components/HeroVideo';
 import { ToolboxScroller } from './components/toolbox/ToolboxScroller';
@@ -6,10 +6,14 @@ import { ProjectsWhiteboard } from './components/ProjectsWhiteboard';
 import { Experience } from './components/Experience';
 import { ContactDirect } from './components/ContactDirect';
 import { Footer } from './components/Footer';
+import { startSmoothScroll } from './utils/smoothScroll';
 
 export const App: React.FC = () => {
   const [introDone, setIntroDone] = useState(false);
   const handleIntroComplete = useCallback(() => setIntroDone(true), []);
+
+  // Smooth scrolling starts once the intro curtain has lifted.
+  useEffect(() => (introDone ? startSmoothScroll() : undefined), [introDone]);
 
   return (
     <div className="relative min-h-screen bg-obsidian-950 text-slate-100 selection:bg-gold-accent selection:text-obsidian-950">

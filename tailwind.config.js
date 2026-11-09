@@ -1,44 +1,43 @@
 /** @type {import('tailwindcss').Config} */
 
 /*
- * Design system — "Midnight & Periwinkle"
- * ───────────────────────────────────────
- * Deep navy-black surfaces, cool off-white text, and one calm periwinkle
- * accent (the indigo family used by most modern dev-tool brands, kept soft
- * so it reads as refined rather than loud). Token names (obsidian / gold / slate) are kept from the original
- * build so every component inherits the new palette without class renames:
- *   obsidian.*  → ink surfaces
- *   gold.*      → periwinkle accent
- *   slate.*     → cool neutral greys
+ * Design system — "Gunmetal · Titanium · Chartreuse"
+ * ──────────────────────────────────────────────────
+ * Two harmonious metals + one deliberate clash:
+ *   gunmetal  (obsidian.*) — matte graphite surfaces            ~60%
+ *   titanium  (slate.*, titanium.*, ivory) — brushed cool silver ~30%
+ *   chartreuse (gold.*)    — warm acid accent that clashes with
+ *                            the cool metals on purpose          ~10%
+ * Token names are kept from earlier builds so components inherit it.
  */
 const ink = {
-  950: '#0B0D12',
-  900: '#10131A',
-  800: '#161A23',
-  700: '#1F2430',
-  600: '#2C3240',
-  500: '#4A5263',
+  950: '#0E1012',
+  900: '#15181C',
+  800: '#1C2026',
+  700: '#262B32',
+  600: '#353B44',
+  500: '#4E5560',
 };
 
 const accent = {
-  accent: '#8B9DFF',
-  glow: '#7385F5',
-  dark: '#5566D6',
-  light: '#B4C0FF',
+  accent: '#C8F25C',
+  glow: '#B4DE47',
+  dark: '#8FB52E',
+  light: '#DDF89B',
 };
 
 const coolNeutral = {
-  50: '#F7F8FA',
-  100: '#E6E8EE',
-  200: '#D3D7E0',
-  300: '#B4BAC7',
-  400: '#8E95A5',
-  500: '#6B7283',
-  600: '#4F5565',
-  700: '#373C49',
-  800: '#252A35',
-  900: '#181C25',
-  950: '#0F1218',
+  50: '#F4F5F7',
+  100: '#E3E6EA',
+  200: '#CCD1D7',
+  300: '#ADB4BD',
+  400: '#8C949F',
+  500: '#6C737E',
+  600: '#515761',
+  700: '#3B4048',
+  800: '#292D34',
+  900: '#1C1F24',
+  950: '#131518',
 };
 
 export default {
@@ -50,7 +49,7 @@ export default {
         obsidian: ink,
         gold: accent,
         slate: coolNeutral,
-        ivory: '#E6E8EE',
+        ivory: '#E3E6EA',
         board: {
           surface: '#F5F3EE',
           frame: '#C9CCD1',
@@ -59,8 +58,11 @@ export default {
           blue: '#2457A6',
         },
         titanium: {
-          border: 'rgba(139, 157, 255, 0.2)',
-          slate: '#2C3240',
+          DEFAULT: '#A8B0BA',
+          light: '#D5DAE0',
+          dark: '#6E7682',
+          border: 'rgba(168, 176, 186, 0.22)',
+          slate: '#353B44',
         },
       },
       fontFamily: {

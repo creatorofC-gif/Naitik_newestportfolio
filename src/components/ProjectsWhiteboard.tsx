@@ -201,7 +201,7 @@ const Marker: React.FC = () => (
     <path d="M0 15 L12 10.5 L12 19.5 Z" fill="#1F2A44" />
     <rect x="12" y="9" width="12" height="12" rx="1.5" fill="#9BA1AB" />
     <rect x="24" y="6" width="118" height="18" rx="5" fill="url(#mk-body)" />
-    <rect x="58" y="6" width="34" height="18" fill="#8B9DFF" opacity="0.9" />
+    <rect x="58" y="6" width="34" height="18" fill="#C8F25C" opacity="0.9" />
     <rect x="142" y="4.5" width="26" height="21" rx="6" fill="#1F2A44" />
     <rect x="30" y="8" width="108" height="2.5" rx="1.2" fill="#fff" opacity="0.12" />
   </svg>
@@ -397,13 +397,13 @@ export const ProjectsWhiteboard: React.FC = () => {
     >
       <div className="sticky top-0 flex h-screen flex-col overflow-hidden px-4 pb-6 pt-8 md:px-10 md:pt-10">
         {/* Wall light */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,rgba(230, 232, 238,0.06),transparent_65%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,rgba(227, 230, 234,0.06),transparent_65%)]" />
 
         <div className="relative mx-auto flex w-full max-w-[1240px] items-end justify-between pb-5">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-gold-accent">03 — Work</p>
             <h2 className="mt-2 font-serif text-4xl text-ivory md:text-5xl">
-              On the whiteboard <em className="text-slate-400">this week.</em>
+              On the whiteboard <em className="text-metal">this week.</em>
             </h2>
           </div>
           <span ref={counterRef} className="hidden font-mono text-xs text-slate-500 md:block" />

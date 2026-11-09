@@ -73,7 +73,7 @@ export const Experience: React.FC = () => {
   const degree = PROFILE_DATA.education[0];
 
   // Node positions along the branch (% of track width)
-  const xOf = useCallback((i: number) => (n > 1 ? 24 + (i * 64) / (n - 1) : 50), [n]);
+  const xOf = useCallback((i: number) => (n > 1 ? 24 + (i * 58) / (n - 1) : 50), [n]);
 
   const sectionRef = useRef<HTMLElement>(null);
   const fallRef = useRef<HTMLDivElement>(null);
@@ -178,7 +178,7 @@ export const Experience: React.FC = () => {
   return (
     <section id="experience" ref={sectionRef} aria-label="Experience" className="relative bg-obsidian-950" style={{ height: '175vh' }}>
       <div className="sticky top-0 h-screen overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(139,157,255,0.08),transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(200, 242, 92,0.08),transparent_60%)]" />
 
         <div className="relative mx-auto flex h-full max-w-6xl flex-col px-5 pb-6 pt-8 md:px-10 md:pt-10">
           {/* Heading */}
@@ -186,7 +186,7 @@ export const Experience: React.FC = () => {
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-gold-accent">04 — Experience</p>
               <h2 className="mt-2 font-serif text-4xl text-ivory md:text-5xl">
-                Commit <em className="text-slate-400">history.</em>
+                Commit <em className="text-metal">history.</em>
               </h2>
             </div>
             <div
@@ -201,19 +201,19 @@ export const Experience: React.FC = () => {
           {/* ─── Branch track ─── */}
           <div className="relative mt-4 h-[236px] shrink-0 [container-type:inline-size] md:h-[272px]">
             {/* branch label */}
-            <div className="absolute left-0 top-[124px] hidden items-center gap-1.5 font-mono text-[11px] text-slate-400 md:top-[144px] md:flex">
+            <div className="absolute left-0 top-[124px] hidden items-center gap-1.5 font-mono text-[11px] text-slate-400 md:top-[144px] lg:flex">
               <GitBranch className="h-3.5 w-3.5 text-gold-accent" /> main
             </div>
             {/* the branch line */}
-            <div className="absolute left-0 right-0 top-[150px] h-[3px] rounded-full bg-gradient-to-r from-[#7DD3C0] via-gold-accent to-gold-accent md:top-[170px]" />
+            <div className="absolute left-0 right-0 top-[150px] h-[3px] rounded-full bg-gradient-to-r from-[#A8B0BA] via-gold-accent to-gold-accent md:top-[170px]" />
             <div className="absolute right-0 top-[144px] h-[15px] w-[15px] translate-x-1/2 rotate-45 border-r-[3px] border-t-[3px] border-gold-accent md:top-[164px]" />
 
             {/* origin: degree */}
             {degree && (
               <div className="absolute top-[150px] md:top-[170px]" style={{ left: 6 }}>
-                <span className="absolute -left-[6px] -top-[4.5px] h-3 w-3 rounded-full border-2 border-[#7DD3C0] bg-obsidian-950" />
-                <div className="absolute left-0 top-4 hidden w-[140px] -translate-x-1.5 md:block">
-                  <p className="font-mono text-[10px] text-[#7DD3C0]">origin</p>
+                <span className="absolute -left-[6px] -top-[4.5px] h-3 w-3 rounded-full border-2 border-[#A8B0BA] bg-obsidian-950" />
+                <div className="absolute left-0 top-4 hidden w-[140px] -translate-x-1.5 lg:block">
+                  <p className="font-mono text-[10px] text-[#A8B0BA]">origin</p>
                   <p className="mt-0.5 text-[11.5px] leading-snug text-slate-400">
                     {degree.qualification.replace(/ in /, ' · ')}
                     <br />
@@ -237,7 +237,7 @@ export const Experience: React.FC = () => {
                 >
                   <span
                     className={`absolute left-1/2 top-[1.5px] h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] transition-all duration-300 ${
-                      on ? 'border-gold-accent bg-gold-accent shadow-[0_0_0_6px_rgba(139,157,255,0.18)]' : 'border-gold-accent bg-obsidian-950 group-hover:bg-gold-accent/40'
+                      on ? 'border-gold-accent bg-gold-accent shadow-[0_0_0_6px_rgba(200, 242, 92,0.18)]' : 'border-gold-accent bg-obsidian-950 group-hover:bg-gold-accent/40'
                     }`}
                   />
                   <span className="mt-5 flex w-[min(210px,28vw)] flex-col items-center text-center">
@@ -251,7 +251,7 @@ export const Experience: React.FC = () => {
                     {i === n - 1 && (
                       <span className="mt-1 rounded bg-gold-accent/15 px-1.5 py-px font-mono text-[10px] text-gold-light">HEAD → main</span>
                     )}
-                    <span className={`mt-1.5 line-clamp-2 text-[11.5px] leading-snug ${on ? 'text-ivory' : 'text-slate-500'}`}>
+                    <span className={`mt-1.5 line-clamp-2 text-[11.5px] leading-snug ${on ? 'text-ivory' : 'hidden text-slate-500 sm:[display:-webkit-box]'}`}>
                       {cm.message}
                     </span>
                   </span>

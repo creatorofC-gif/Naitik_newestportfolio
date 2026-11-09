@@ -8,7 +8,7 @@
 export type Range = readonly [number, number];
 
 /** Height of the scroll track. The sticky viewport is pinned while this scrolls past. */
-export const SECTION_HEIGHT_VH = 520;
+export const SECTION_HEIGHT_VH = 760; // longer track = each stage gets more scroll distance (slower, calmer)
 
 /** Scroll progress (0–1) windows for each stage. */
 export const TIMELINE = {

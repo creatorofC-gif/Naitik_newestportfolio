@@ -92,7 +92,7 @@ export const HeroVideo: React.FC = () => {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                'linear-gradient(to top, #0B0D12 0%, rgba(11,13,18,0.4) 50%, transparent 100%), linear-gradient(to right, #0B0D12 0%, rgba(11,13,18,0.2) 35%, transparent 70%)',
+                'linear-gradient(to top, #0E1012 0%, rgba(14, 16, 18,0.4) 50%, transparent 100%), linear-gradient(to right, #0E1012 0%, rgba(14, 16, 18,0.2) 35%, transparent 70%)',
             }}
           />
 
@@ -145,7 +145,7 @@ export const HeroVideo: React.FC = () => {
             <div className="flex flex-wrap items-center gap-4 mt-8">
               <a
                 href="#projects"
-                className="px-6 py-3 rounded-lg bg-ivory hover:bg-white text-obsidian-950 font-semibold text-sm flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                className="px-6 py-3 rounded-lg btn-metal font-semibold text-sm flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
               >
                 Explore My Work
                 <ArrowRight className="w-4 h-4" />

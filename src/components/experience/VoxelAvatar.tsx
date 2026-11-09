@@ -59,9 +59,9 @@ const Limb: React.FC<{ x: number; y: number; className: string; children: React.
 
 const SKIN = '#E8B796';
 const HAIR = '#2B2118';
-const HOODIE = '#8B9DFF';
-const PANTS = '#2C3240';
-const SHOES = '#E6E8EE';
+const HOODIE = '#5E6875'; // gunmetal-steel hoodie
+const PANTS = '#353B44';
+const SHOES = '#E3E6EA';
 
 export const VoxelAvatar: React.FC<{ state: string; yaw: number }> = ({ state, yaw }) => (
   <div className={`vox ${state}`} style={{ transform: `rotateX(-14deg) rotateY(${yaw}deg)` }}>
@@ -85,7 +85,7 @@ export const VoxelAvatar: React.FC<{ state: string; yaw: number }> = ({ state, y
         color={HOODIE}
         front={
           <>
-            <span className="absolute left-[7px] top-[5px] h-[3px] w-[6px] rounded-[1px] bg-white/70" />
+            <span className="absolute left-[7px] top-[5px] h-[3px] w-[6px] rounded-[1px] bg-[#C8F25C]" />
             <span className="absolute bottom-[3px] left-[4px] h-[5px] w-[12px] rounded-[1px] bg-black/15" />
           </>
         }

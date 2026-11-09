@@ -190,12 +190,12 @@ export const ContactDirect: React.FC = () => {
     <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950" style={{ height: '185vh' }}>
       <div className="sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-6">
         {/* Desk light */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(139,157,255,0.09),transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(200, 242, 92,0.09),transparent_60%)]" />
 
         <div ref={headRef} className="relative mb-5 w-[min(1080px,94vw,99vh)] will-change-transform" style={{ opacity: 0 }}>
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-gold-accent">05 — Contact</p>
           <h2 className="mt-2 font-serif text-4xl text-ivory md:text-5xl">
-            Let’s build <em className="text-slate-400">something.</em>
+            Let’s build <em className="text-metal">something.</em>
           </h2>
         </div>
 
@@ -205,7 +205,7 @@ export const ContactDirect: React.FC = () => {
             <div
               className="relative w-[min(1080px,94vw,99vh)] rounded-[20px] p-[10px] md:p-3"
               style={{
-                background: 'linear-gradient(180deg, #23283400 0%, #1A1E28 0%, #12151C 100%)',
+                background: 'linear-gradient(180deg, #23272D00 0%, #1E2227 0%, #141619 100%)',
                 boxShadow: '0 40px 80px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.05)',
               }}
             >
@@ -228,7 +228,7 @@ export const ContactDirect: React.FC = () => {
                     <aside className="hidden w-[180px] shrink-0 flex-col border-r border-slate-800 bg-obsidian-950/60 p-3 md:flex">
                       <button
                         onClick={composeAnother}
-                        className="flex items-center justify-center gap-2 rounded-lg bg-gold-accent py-2 text-[12px] font-medium text-obsidian-950 transition-colors hover:bg-gold-light"
+                        className="btn-accent flex items-center justify-center gap-2 rounded-lg py-2 text-[12px] font-medium"
                       >
                         <PenSquare className="h-3.5 w-3.5" /> New message
                       </button>
@@ -357,7 +357,7 @@ export const ContactDirect: React.FC = () => {
                               <button
                                 type="submit"
                                 disabled={status === 'sending'}
-                                className="flex items-center gap-2 rounded-lg bg-gold-accent px-4 py-2 text-[12.5px] font-medium text-obsidian-950 transition-colors hover:bg-gold-light disabled:opacity-70"
+                                className="btn-accent flex items-center gap-2 rounded-lg px-4 py-2 text-[12.5px] font-medium disabled:opacity-70"
                               >
                                 {status === 'sending' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                                 {status === 'sending' ? 'Sending…' : 'Send'}
@@ -426,7 +426,7 @@ export const ContactDirect: React.FC = () => {
                 </div>
 
                 {/* Screen glass: off-state that fades as the display powers on */}
-                <div ref={screenOffRef} className="pointer-events-none absolute inset-0 bg-[#05070A]" />
+                <div ref={screenOffRef} className="pointer-events-none absolute inset-0 bg-[#060708]" />
                 {/* Subtle glare */}
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.04)_0%,transparent_35%)]" />
               </div>
@@ -435,8 +435,8 @@ export const ContactDirect: React.FC = () => {
             </div>
 
             {/* Stand */}
-            <div className="mx-auto hidden h-14 w-28 md:block" style={{ background: 'linear-gradient(180deg, #0E1117, #1A1E28)', clipPath: 'polygon(18% 0, 82% 0, 92% 100%, 8% 100%)' }} />
-            <div className="mx-auto hidden h-2.5 w-64 rounded-t-md md:block" style={{ background: 'linear-gradient(180deg, #252A35, #12151C)', boxShadow: '0 18px 30px -10px rgba(0,0,0,0.9)' }} />
+            <div className="mx-auto hidden h-14 w-28 md:block" style={{ background: 'linear-gradient(180deg, #101215, #1E2227)', clipPath: 'polygon(18% 0, 82% 0, 92% 100%, 8% 100%)' }} />
+            <div className="mx-auto hidden h-2.5 w-64 rounded-t-md md:block" style={{ background: 'linear-gradient(180deg, #2A2E35, #141619)', boxShadow: '0 18px 30px -10px rgba(0,0,0,0.9)' }} />
           </div>
         </div>
       </div>

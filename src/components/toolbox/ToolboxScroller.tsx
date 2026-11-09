@@ -3,6 +3,7 @@ import { ArrowDown, Volume2, VolumeX } from 'lucide-react';
 import { PROFILE_DATA } from '../../data/profileData';
 import { soundEffects } from '../../utils/soundEffects';
 import { runScrollScene } from '../../utils/scrollScene';
+import { scrollToY } from '../../utils/smoothScroll';
 import {
   SECTION_HEIGHT_VH,
   TIMELINE,
@@ -91,7 +92,7 @@ export const ToolboxScroller: React.FC = () => {
 
     const handle = runScrollScene(section, (target, dt) => {
       const diff = target - current;
-      current = Math.abs(diff) > 0.0002 ? current + diff * Math.min(1, dt * 9) : target;
+      current = Math.abs(diff) > 0.0002 ? current + diff * Math.min(1, dt * 14) : target;
       const p = current;
 
       // ── WebGL: only while the case itself is on screen ──
@@ -222,7 +223,7 @@ export const ToolboxScroller: React.FC = () => {
       const [a, b] = categoryWindow(index, categories.length);
       const top = el.getBoundingClientRect().top + window.scrollY;
       const scrollable = el.offsetHeight - window.innerHeight;
-      window.scrollTo({ top: top + (a + (b - a) * 0.75) * scrollable, behavior: 'smooth' });
+      scrollToY(top + (a + (b - a) * 0.75) * scrollable);
     },
     [categories.length],
   );
@@ -237,7 +238,7 @@ export const ToolboxScroller: React.FC = () => {
       style={{ height: webGl ? `${SECTION_HEIGHT_VH}vh` : 'auto' }}
     >
       <div className={webGl ? 'sticky top-0 h-screen w-full overflow-hidden' : 'relative w-full min-h-screen'}>
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_55%,rgba(139,157,255,0.07),transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_55%,rgba(200, 242, 92,0.07),transparent_60%)]" />
 
         {/* 3D case */}
         <div ref={canvasHostRef} className="absolute inset-0 z-0" />
@@ -250,7 +251,7 @@ export const ToolboxScroller: React.FC = () => {
           <div className="max-w-md">
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-gold-accent">02 — Toolkit</p>
             <h2 className="mt-4 font-serif text-5xl leading-[1.02] text-ivory md:text-6xl">
-              The tools <em className="text-slate-400">I reach for.</em>
+              The tools <em className="text-metal">I reach for.</em>
             </h2>
             <p className="mt-5 text-sm leading-relaxed text-slate-400">
               {categories.length} compartments, {skillCount} tools. Keep scrolling and the case opens up.
@@ -274,7 +275,7 @@ export const ToolboxScroller: React.FC = () => {
           style={{ opacity: webGl ? 0.001 : 1, pointerEvents: webGl ? 'none' : 'auto' }}
         >
           {/* Case interior lining: static gradients only (no blur / large shadows to re-raster) */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,#141824_0%,#0B0D12_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,#1A1D22_0%,#0E1012_70%)]" />
 
           <div className="relative mx-auto flex h-full max-w-7xl flex-col px-5 pb-8 pt-10 md:px-10 md:pt-14">
             <header className="flex flex-wrap items-end justify-between gap-4">
@@ -349,6 +350,9 @@ export const ToolboxScroller: React.FC = () => {
                               {pad2(ci + 1)}.{pad2(si + 1)}
                             </span>
                             <span className="hidden truncate uppercase tracking-wider text-slate-500 sm:inline">{label}</span>
+                            <span className="-my-1 sm:hidden">
+                              <SkillEmblem name={skill.name} size={26} />
+                            </span>
                           </div>
                           <div className="mt-4 flex items-end justify-between gap-2 sm:gap-3">
                             <div className="min-w-0">
@@ -358,7 +362,9 @@ export const ToolboxScroller: React.FC = () => {
                               <span className="mt-2.5 block h-0.5 w-6 bg-gold-accent" />
                               <p className="mt-2 truncate text-[11.5px] text-slate-400">{skill.highlightTag}</p>
                             </div>
-                            <SkillEmblem name={skill.name} size={36} />
+                            <span className="hidden sm:block">
+                              <SkillEmblem name={skill.name} size={36} />
+                            </span>
                           </div>
                         </li>
                       ))}

@@ -1,11 +1,12 @@
 import React from 'react';
 import { ArrowUp } from 'lucide-react';
 import { PROFILE_DATA } from '../data/profileData';
+import { scrollToY } from '../utils/smoothScroll';
 import { GithubIcon, LinkedinIcon } from './SocialIcons';
 
 export const Footer: React.FC = () => {
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToY(0);
   };
 
   return (
