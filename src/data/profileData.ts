@@ -56,6 +56,8 @@ export interface ExperienceItem {
   description: string;
   achievements: string[];
   technologies: string[];
+  /** One-line "commit message": what I did, in short. */
+  summary?: string;
 }
 
 export interface TechnicalHighlight {
@@ -441,6 +443,7 @@ export const PROFILE_DATA = {
   experience: [
     {
       id: "exp-1",
+      summary: "Built Angular features and debugged them under mentor guidance",
       role: "Angular Developer Intern",
       company: "Red Leaf Softwares & Services LLP",
       location: "Not specified",
@@ -457,6 +460,7 @@ export const PROFILE_DATA = {
     },
     {
       id: "exp-2",
+      summary: "Shipped a Bluetooth Android app that controls an ESP32 heating band",
       role: "Android Developer",
       company: "Alien Healthcare",
       location: "Not specified",
@@ -472,6 +476,7 @@ export const PROFILE_DATA = {
     },
     {
       id: "exp-3",
+      summary: "Rebuilt the MyEzz web platform with React and Tailwind CSS",
       role: "Frontend Developer",
       company: "MyEzz — Food Delivery Startup",
       location: "Not specified",

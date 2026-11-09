@@ -119,3 +119,55 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────
+   Voxel avatar (Experience) — CSS 3D boxes
+   ───────────────────────────────────────────────────── */
+.vox,
+.vox-body,
+.vox-box,
+.vox-pivot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+.vox { transition: transform 0.35s ease; }
+.vox-face { position: absolute; backface-visibility: hidden; }
+.vox-body { animation: vox-idle 2.4s ease-in-out infinite; transform-origin: 0 0; }
+
+@keyframes vox-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+@keyframes vox-swing { from { transform: rotateX(32deg); } to { transform: rotateX(-32deg); } }
+@keyframes vox-land {
+  0% { transform: scale(1.18, 0.72); }
+  55% { transform: scale(0.94, 1.08); }
+  100% { transform: none; }
+}
+
+.vox.walking .vox-body { animation: vox-walk-bob 0.3s ease-in-out infinite alternate; }
+@keyframes vox-walk-bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+.vox.walking .vox-leg-l,
+.vox.walking .vox-arm-r { animation: vox-swing 0.3s ease-in-out infinite alternate; }
+.vox.walking .vox-leg-r,
+.vox.walking .vox-arm-l { animation: vox-swing 0.3s ease-in-out infinite alternate-reverse; }
+
+.vox-arm-l, .vox-arm-r { transition: transform 0.25s ease; }
+.vox.falling .vox-body { animation: none; }
+.vox.falling .vox-arm-l { transform: rotateZ(155deg); }
+.vox.falling .vox-arm-r { transform: rotateZ(-155deg); }
+.vox.falling .vox-leg-l { transform: rotateX(18deg); }
+.vox.falling .vox-leg-r { transform: rotateX(-12deg); }
+.vox.landing .vox-body { animation: vox-land 0.45s cubic-bezier(0.22, 1, 0.36, 1) 1; }
+
+@keyframes vox-dust { 0% { opacity: 0.7; transform: scale(0.4); } 100% { opacity: 0; transform: scale(1.8); } }
+.vox-dust { animation: vox-dust 0.6s ease-out 1 forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vox-body, .vox-pivot { animation: none !important; }
+}
+
+/* Commit panel swap */
+@keyframes commit-in { from { opacity: 0; transform: translate3d(0, 8px, 0); } to { opacity: 1; transform: none; } }
+.commit-in { animation: commit-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
