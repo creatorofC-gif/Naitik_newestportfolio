@@ -26,3 +26,7 @@ dist-ssr
 # Playwright
 playwright-report/
 test-results/
+
+# Resume pipeline outputs (regenerated from src/data/*.pdf on every dev/build)
+src/data/resume.generated.json
+public/resume.pdf

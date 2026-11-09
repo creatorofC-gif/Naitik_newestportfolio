@@ -61,7 +61,7 @@ function sketchArrow(x1: number, y1: number, x2: number, y2: number, seed: numbe
   return `M${x1} ${y1} Q${mx} ${my} ${x2} ${y2} M${hx(0.5)} ${hy(0.5)} L${x2} ${y2} L${hx(-0.5)} ${hy(-0.5)}`;
 }
 
-const shortTitle = (p: Project) => p.title.split(/\s[—-]\s/)[0];
+const shortTitle = (p: Project) => p.title.split(/\s[—–-]\s/)[0];
 
 /* ─── One whiteboard page ─────────────────────────────────── */
 const ProjectPage: React.FC<{ project: Project; index: number; total: number; onOpen: () => void }> = ({
@@ -77,11 +77,12 @@ const ProjectPage: React.FC<{ project: Project; index: number; total: number; on
   return (
     <div data-page className="absolute inset-0 flex flex-col p-6 md:p-10 lg:p-12" style={{ opacity: 0 }}>
       <div className="flex items-start justify-between gap-4">
-        <span data-unit="clip" className="font-hand text-xl text-board-red md:text-2xl">
+        <span data-unit="clip" className="shrink-0 whitespace-nowrap font-hand text-xl text-board-red md:text-2xl">
           Project {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
         </span>
-        <span data-unit="clip" className="font-hand text-lg text-board-ink/60 md:text-xl">
+        <span data-unit="clip" className="text-right font-hand text-base leading-tight text-board-ink/60 md:text-xl">
           {project.category}
+          {project.period && ` · ${project.period}`}
         </span>
       </div>
 
@@ -102,28 +103,28 @@ const ProjectPage: React.FC<{ project: Project; index: number; total: number; on
           />
         </svg>
       </div>
-      <p data-unit="clip" className="mt-3 self-start font-hand text-2xl leading-tight text-board-blue md:text-[30px]">
+      <p data-unit="clip" className="mt-3 self-start font-hand text-[21px] leading-tight text-board-blue md:text-[30px]">
         {project.subtitle}
       </p>
 
       <div className="mt-6 grid min-h-0 flex-1 gap-8 md:grid-cols-[1.25fr_1fr]">
         <div className="flex min-h-0 flex-col gap-2.5">
           {project.technicalHighlights.map((h) => (
-            <p key={h} data-unit="clip" className="self-start font-hand text-[22px] leading-snug text-board-ink md:text-[25px]">
+            <p key={h} data-unit="clip" className="self-start font-hand text-[18px] leading-snug text-board-ink md:text-[25px]">
               <span className="mr-2 text-board-red">→</span>
               {h}
             </p>
           ))}
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span data-unit="clip" className="font-hand text-[22px] text-board-ink/70 md:text-2xl">
+            <span data-unit="clip" className="font-hand text-[18px] text-board-ink/70 md:text-2xl">
               built with:
             </span>
             {project.tags.map((t) => (
               <span
                 key={t}
                 data-unit="clip"
-                className="rounded-[50%_45%_55%_40%/45%_55%_40%_55%] border-2 border-board-blue/80 px-3 py-0.5 font-hand text-[21px] text-board-blue md:text-[23px]"
+                className="rounded-[50%_45%_55%_40%/45%_55%_40%_55%] border-2 border-board-blue/80 px-2.5 py-0.5 font-hand text-[17px] text-board-blue md:px-3 md:text-[23px]"
               >
                 {t}
               </span>
@@ -174,7 +175,7 @@ const ProjectPage: React.FC<{ project: Project; index: number; total: number; on
       <button
         data-note
         onClick={onOpen}
-        className="absolute bottom-6 left-6 -rotate-[2.5deg] bg-[#F7E58C] px-4 py-3 text-left font-hand text-xl leading-tight text-board-ink shadow-[0_10px_20px_-8px_rgba(0,0,0,0.35)] transition-transform hover:rotate-0 hover:scale-105 md:bottom-10 md:left-12"
+        className="mt-3 self-start -rotate-[2.5deg] bg-[#F7E58C] px-3 py-2 text-left font-hand text-lg leading-tight md:absolute md:bottom-10 md:left-12 md:mt-0 md:px-4 md:py-3 md:text-xl text-board-ink shadow-[0_10px_20px_-8px_rgba(0,0,0,0.35)] transition-transform hover:rotate-0 hover:scale-105"
         style={{ opacity: 0, pointerEvents: 'none' }}
       >
         read the full

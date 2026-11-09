@@ -28,7 +28,7 @@ function periodParts(p: string) {
   const [a, b] = p.split(/\s*[—–]\s*|\s+-\s+/);
   return { start: parseMonth(a), end: b ? parseMonth(b) : null };
 }
-const companyShort = (c: string) => c.split(/\s[—-]\s/)[0];
+const companyShort = (c: string) => c.split(/\s[—–-]\s/)[0];
 const brandName = (c: string) =>
   companyShort(c).replace(/\s+(Softwares?|Services|Solutions|Technologies|LLP|Pvt|Ltd|Inc)\b.*$/i, '').trim();
 

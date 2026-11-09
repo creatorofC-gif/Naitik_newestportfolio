@@ -152,9 +152,7 @@ export const HeroVideo: React.FC = () => {
               </a>
 
               <a
-                href={PROFILE_DATA.personal.resumeUrl && PROFILE_DATA.personal.resumeUrl !== '#resume'
-                  ? PROFILE_DATA.personal.resumeUrl
-                  : `${import.meta.env.BASE_URL}resume.pdf`}
+                href={PROFILE_DATA.personal.resumeUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="px-6 py-3 rounded-lg bg-obsidian-900/80 hover:bg-slate-800 text-slate-200 font-medium text-sm flex items-center gap-2 transition-all border border-slate-700 hover:border-gold-glow/40"

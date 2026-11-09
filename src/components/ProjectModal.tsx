@@ -55,6 +55,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
             <div className="absolute bottom-4 left-4">
               <span className="text-[10px] font-mono px-2.5 py-1 rounded-md bg-obsidian-900/80 border border-gold-glow/30 text-gold-accent font-bold backdrop-blur-sm">
                 {project.category}
+                {project.period && ` · ${project.period}`}
               </span>
             </div>
           </div>
