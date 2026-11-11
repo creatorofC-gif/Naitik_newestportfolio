@@ -12,7 +12,7 @@ import {
   pad2,
   progressIn,
 } from './toolboxConfig';
-import { ToolboxScene } from './toolboxScene';
+import type { ToolboxScene } from './toolboxScene';
 import { SkillEmblem } from './skillEmblems';
 
 /** Past this point the inside overlay is fully opaque — WebGL stops rendering entirely. */
@@ -25,6 +25,8 @@ const CANVAS_OFF_AT = TIMELINE.dive[1] + 0.01;
  * HTML "compartments": one section per skill category, filled card by card.
  *
  * Performance model:
+ *  - Three.js + the scene are loaded on demand (own chunk), not in the main bundle,
+ *    so phones show the site sooner.
  *  - runScrollScene: cached geometry, runs only while on screen, idles when still.
  *  - WebGL renders only when the smoothed progress or hover/parallax changes,
  *    and not at all once the camera is inside the case (canvas hidden).
@@ -54,23 +56,10 @@ export const ToolboxScroller: React.FC = () => {
     if (!section || !host) return;
 
     let scene: ToolboxScene | null = null;
-    try {
-      scene = new ToolboxScene(host, categories);
-    } catch (err) {
-      console.error('WebGL unavailable — showing compartments only', err);
-      setWebGl(false);
-    }
-
-    // Pre-warm GPU work while the intro is still on screen, not mid-scroll.
-    const warm = () => {
-      try {
-        scene?.warmup();
-      } catch {
-        /* non-fatal */
-      }
-    };
+    let failed = false; // WebGL or the scene chunk didn't load: show the compartments without 3D
+    let disposed = false;
     const hasIdle = typeof window.requestIdleCallback === 'function';
-    const idleId = hasIdle ? window.requestIdleCallback(warm, { timeout: 1500 }) : (setTimeout(warm, 300) as unknown as number);
+    let idleId: number | undefined;
 
     const cards = compartmentRefs.current.map((node) =>
       node ? Array.from(node.querySelectorAll<HTMLElement>('[data-card]')) : [],
@@ -129,7 +118,7 @@ export const ToolboxScroller: React.FC = () => {
         if (hintRef.current) hintRef.current.style.opacity = p < 0.03 ? '1' : '0';
       }
 
-      const inside = scene ? Math.round(progressIn(p, TIMELINE.dive) * 200) / 200 : 1;
+      const inside = failed ? 1 : Math.round(progressIn(p, TIMELINE.dive) * 200) / 200;
       if (inside !== lastInside && insideRef.current) {
         lastInside = inside;
         const el = insideRef.current;
@@ -146,7 +135,7 @@ export const ToolboxScroller: React.FC = () => {
 
       categories.forEach((cat, i) => {
         const [a, b] = categoryWindow(i, categories.length);
-        const r = scene ? progressIn(p, [a - 0.02, a + (b - a) * 0.7]) : 1;
+        const r = failed ? 1 : progressIn(p, [a - 0.02, a + (b - a) * 0.7]);
         const on = r > 0;
         if (on !== compOn[i]) {
           compOn[i] = on;
@@ -184,6 +173,36 @@ export const ToolboxScroller: React.FC = () => {
       return current !== target || sceneMoving;
     });
 
+    // Load Three.js + the scene in its own chunk.
+    const fail = (err: unknown) => {
+      console.error('WebGL unavailable — showing compartments only', err);
+      failed = true;
+      setWebGl(false);
+      handle.kick();
+    };
+    import('./toolboxScene')
+      .then(({ ToolboxScene }) => {
+        if (disposed) return;
+        try {
+          scene = new ToolboxScene(host, categories);
+        } catch (err) {
+          fail(err);
+          return;
+        }
+        rendered = -1;
+        handle.kick();
+        // Pre-warm GPU work during idle time, not mid-scroll.
+        const warm = () => {
+          try {
+            scene?.warmup();
+          } catch {
+            /* non-fatal */
+          }
+        };
+        idleId = hasIdle ? window.requestIdleCallback(warm, { timeout: 1500 }) : (setTimeout(warm, 300) as unknown as number);
+      })
+      .catch(fail);
+
     const onResize = () => {
       scene?.resize(host.clientWidth, host.clientHeight);
       rendered = -1;
@@ -207,8 +226,11 @@ export const ToolboxScroller: React.FC = () => {
     host.addEventListener('mouseleave', onLeave, { passive: true });
 
     return () => {
-      if (hasIdle) window.cancelIdleCallback(idleId);
-      else clearTimeout(idleId);
+      disposed = true;
+      if (idleId !== undefined) {
+        if (hasIdle) window.cancelIdleCallback(idleId);
+        else clearTimeout(idleId);
+      }
       handle.stop();
       ro.disconnect();
       host.removeEventListener('mousemove', onMove);

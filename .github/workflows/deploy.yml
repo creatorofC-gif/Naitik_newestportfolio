@@ -1,7 +1,11 @@
 name: Deploy to GitHub Pages
 
+# Deploys only after the mobile/unit checks pass on main, so a broken change never goes live.
+# "Run workflow" (manual) skips the wait, for emergencies.
 on:
-  push:
+  workflow_run:
+    workflows: ['Mobile & compatibility checks']
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -16,12 +20,16 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Build exactly the commit that passed the checks.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22

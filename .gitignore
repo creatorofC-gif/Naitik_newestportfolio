@@ -35,3 +35,6 @@ public/resume.pdf
 .env
 .env.*
 !.env.example
+
+# Design reference screenshots (kept locally, not part of the site)
+changes_images/

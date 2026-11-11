@@ -3,7 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { PROFILE_DATA } from '../data/profileData';
 import type { Project } from '../data/profileData';
 import { ProjectModal } from './ProjectModal';
-import { runScrollScene } from '../utils/scrollScene';
+import { runScrollScene, clamp01 } from '../utils/scrollScene';
 
 /* ──────────────────────────────────────────────────────────────
    Projects — a whiteboard written live by a marker as you scroll.
@@ -22,7 +22,6 @@ const PER_PROJECT_VH = 230;
 const WRITE_END = 0.8; // share of a project's segment spent writing…
 const ERASE_START = 0.88; // …then a pause, then the wipe
 
-const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
 interface Unit {

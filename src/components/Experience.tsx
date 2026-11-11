@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, GitBranch, GitCommitHorizontal, Copy, Check, FileDiff } from 'lucide-react';
 import { PROFILE_DATA } from '../data/profileData';
 import { runScrollScene, clamp01 } from '../utils/scrollScene';
+import { commitDate } from '../utils/period';
 import { VoxelAvatar } from './experience/VoxelAvatar';
 
 /* ──────────────────────────────────────────────────────────────
@@ -17,17 +18,6 @@ import { VoxelAvatar } from './experience/VoxelAvatar';
    landing / commit change.
    ────────────────────────────────────────────────────────────── */
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-function parseMonth(s: string): { y: number; m: number } | null {
-  const mt = s.trim().match(/^([A-Za-z]+)\.?\s+(\d{4})$/);
-  if (!mt) return null;
-  const m = MONTHS.findIndex((x) => x.toLowerCase() === mt[1].slice(0, 3).toLowerCase());
-  return m < 0 ? null : { y: Number(mt[2]), m };
-}
-function periodParts(p: string) {
-  const [a, b] = p.split(/\s*[—–]\s*|\s+-\s+/);
-  return { start: parseMonth(a), end: b ? parseMonth(b) : null };
-}
 const companyShort = (c: string) => c.split(/\s[—–-]\s/)[0];
 const brandName = (c: string) =>
   companyShort(c).replace(/\s+(Softwares?|Services|Solutions|Technologies|LLP|Pvt|Ltd|Inc)\b.*$/i, '').trim();
@@ -52,10 +42,7 @@ export const Experience: React.FC = () => {
   const commits: Commit[] = useMemo(
     () =>
       [...PROFILE_DATA.experience].reverse().map((e) => {
-        const { start, end } = periodParts(e.period);
-        const id = start ? `${start.y}.${String(start.m + 1).padStart(2, '0')}` : e.period;
-        const fmt = (d: { y: number; m: number }) => `${MONTHS[d.m]} ${d.y}`;
-        const dateLabel = start ? (end ? `${fmt(start)} – ${fmt(end)}` : fmt(start)) : e.period;
+        const { id, label: dateLabel } = commitDate(e.period);
         return {
           id,
           message: e.summary ?? `${e.role} at ${brandName(e.company)}`,

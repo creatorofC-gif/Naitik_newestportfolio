@@ -20,7 +20,7 @@ const BASE = { w: 3.2, h: 0.8, d: 1.6, wall: 0.06 } as const;
 const TRAY = { w: 3.2, h: 0.28, d: 0.8, wall: 0.04 } as const;
 const LID = { h: 0.24, openAngle: 1.95 } as const;
 const TOP_Y = BASE.h + TRAY.h;
-const TILE = { w: 1, h: 0.46, depth: 0.06, gapX: 0.12, gapY: 0.14 } as const;
+const TILE = { w: 1, h: 0.46, depth: 0.06 } as const;
 const FACE = { w: TILE.w - 0.035, h: TILE.h - 0.035 } as const;
 const FACE_PX = { w: 512, h: Math.round((512 * FACE.h) / FACE.w) } as const;
 const HOME_ROT_X = -0.2;
@@ -39,19 +39,8 @@ interface Frame {
   cy: number;
   cz: number;
 }
-interface Region {
-  cy: number;
-  z: number;
-  w: number;
-  h: number;
-  maxCols: number;
-  maxScale: number;
-}
 interface ViewLayout {
   box: Frame;
-  full: Frame;
-  present: Region;
-  finale: Region;
   /** Fraction of the viewport the stage may occupy (overlay takes the rest). */
   fracW: number;
   fracH: number;
@@ -65,9 +54,6 @@ function getViewLayout(width: number, height: number): ViewLayout {
   if (width >= 1024) {
     return {
       box: { w: 4.4, h: 2.8, cy: 0.85, cz: 0.2 },
-      full: { w: 5.4, h: 4.4, cy: 1.85, cz: 0.4 },
-      present: { cy: 2.85, z: 0.95, w: 4.9, h: 1.75, maxCols: 4, maxScale: 1 },
-      finale: { cy: 2.78, z: 0.95, w: 5.3, h: 2.4, maxCols: 7, maxScale: 1 },
       fracW: 0.6,
       fracH: 0.88,
       offsetX: -0.19,
@@ -77,9 +63,6 @@ function getViewLayout(width: number, height: number): ViewLayout {
   if (aspect < 0.9) {
     return {
       box: { w: 3.9, h: 2.8, cy: 0.85, cz: 0.2 },
-      full: { w: 3.6, h: 4.2, cy: 1.8, cz: 0.4 },
-      present: { cy: 2.85, z: 0.95, w: 3.4, h: 2.0, maxCols: 3, maxScale: 1.1 },
-      finale: { cy: 2.85, z: 0.95, w: 3.4, h: 2.6, maxCols: 4, maxScale: 1 },
       fracW: 0.98,
       fracH: 0.6,
       offsetX: 0,
@@ -88,9 +71,6 @@ function getViewLayout(width: number, height: number): ViewLayout {
   }
   return {
     box: { w: 4.4, h: 2.8, cy: 0.85, cz: 0.2 },
-    full: { w: 5.6, h: 4.4, cy: 1.85, cz: 0.4 },
-    present: { cy: 2.85, z: 0.95, w: 5.2, h: 1.75, maxCols: 4, maxScale: 1 },
-    finale: { cy: 2.78, z: 0.95, w: 5.4, h: 2.4, maxCols: 7, maxScale: 1 },
     fracW: 0.94,
     fracH: 0.66,
     offsetX: 0,
@@ -145,51 +125,15 @@ interface TrayRig {
 type ContainerKind = 'front' | 'back' | 'base';
 
 interface ToolTile {
-  key: string;
-  skill: Skill;
-  category: number;
-  index: number;
-  globalIndex: number;
-  categorySize: number;
   group: THREE.Group;
-  face: THREE.Mesh;
-  glow: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   container: ContainerKind;
   homeLocal: THREE.Vector3;
   homeScale: number;
-  slot: THREE.Vector3;
-  slotScale: number;
-  finale: THREE.Vector3;
-  finaleScale: number;
-  presented: number;
-  hover: number;
-}
-
-export interface ToolboxSceneOptions {
-  onHoverChange?: (skillKey: string | null) => void;
 }
 
 /* ──────────────────────────────────────────────────────────────
    Helpers
    ────────────────────────────────────────────────────────────── */
-function gridLayout(count: number, maxCols: number) {
-  const rows = Math.ceil(count / maxCols);
-  const cols = Math.ceil(count / rows);
-  const stepX = TILE.w + TILE.gapX;
-  const stepY = TILE.h + TILE.gapY;
-  const positions = Array.from({ length: count }, (_, i) => {
-    const r = Math.floor(i / cols);
-    const c = i % cols;
-    const inRow = r === rows - 1 ? count - cols * (rows - 1) : cols;
-    return { x: (c - (inRow - 1) / 2) * stepX, y: ((rows - 1) / 2 - r) * stepY };
-  });
-  return {
-    positions,
-    width: cols * TILE.w + (cols - 1) * TILE.gapX,
-    height: rows * TILE.h + (rows - 1) * TILE.gapY,
-  };
-}
-
 function createShell(
   w: number,
   h: number,
@@ -381,7 +325,6 @@ export class ToolboxScene {
   private readonly camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
   private readonly pmrem: THREE.PMREMGenerator;
   private readonly envTexture: THREE.Texture;
-  private readonly options: ToolboxSceneOptions;
 
   private readonly lidPivot = new THREE.Group();
   private readonly latches: THREE.Group[] = [];
@@ -396,18 +339,14 @@ export class ToolboxScene {
 
   private readonly pointerNdc = new THREE.Vector2();
   private pointerActive = false;
-  private pointerMoved = false;
   private readonly parallax = new THREE.Vector2();
-  private readonly raycaster = new THREE.Raycaster();
-  private hoveredIndex = -1;
 
   private readonly poseHome = makePose();
   private readonly camTarget = new THREE.Vector3();
 
   private disposed = false;
 
-  constructor(host: HTMLElement, categories: SkillCategory[], options: ToolboxSceneOptions = {}) {
-    this.options = options;
+  constructor(host: HTMLElement, categories: SkillCategory[]) {
     // Perf: MSAA only where pixels are big enough to need it; high-DPI screens are
     // capped at 1.25x (the adaptive governor in ToolboxScroller can lower it further).
     const dpr = window.devicePixelRatio || 1;
@@ -675,11 +614,9 @@ export class ToolboxScene {
   private buildTiles(categories: SkillCategory[]) {
     const bodyGeo = new RoundedBoxGeometry(TILE.w, TILE.h, TILE.depth, 2, 0.022);
     const faceGeo = new THREE.PlaneGeometry(FACE.w, FACE.h);
-    const glowGeo = new THREE.PlaneGeometry(TILE.w + 0.08, TILE.h + 0.08);
     const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1c2026, metalness: 0.6, roughness: 0.4 });
     const anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
 
-    let globalIndex = 0;
     categories.forEach((cat, c) => {
       const n = cat.skills.length;
       const label = categoryCode(cat.id);
@@ -706,28 +643,11 @@ export class ToolboxScene {
         const body = new THREE.Mesh(bodyGeo, bodyMat);
         const face = new THREE.Mesh(faceGeo, new THREE.MeshBasicMaterial({ map: texture, toneMapped: false }));
         face.position.z = TILE.depth / 2 + 0.001;
-        const glow = new THREE.Mesh(
-          glowGeo,
-          new THREE.MeshBasicMaterial({ color: 0xc8f25c, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
-        );
-        glow.position.z = -TILE.depth / 2 - 0.004;
-        glow.visible = false;
-        group.add(body, face, glow);
+        group.add(body, face);
         this.scene.add(group);
 
-        const tileIndex = this.tiles.length;
-        face.userData.tileIndex = tileIndex;
-
         this.tiles.push({
-          key: `${c}:${i}`,
-          skill,
-          category: c,
-          index: i,
-          globalIndex: globalIndex++,
-          categorySize: n,
           group,
-          face,
-          glow,
           container,
           homeLocal: new THREE.Vector3(
             (i - (n - 1) / 2) * spacing,
@@ -735,53 +655,8 @@ export class ToolboxScene {
             rowZ,
           ),
           homeScale,
-          slot: new THREE.Vector3(),
-          slotScale: 1,
-          finale: new THREE.Vector3(),
-          finaleScale: 1,
-          presented: 0,
-          hover: 0,
         });
       });
-    });
-  }
-
-  /** Recompute presentation + finale slots for the current viewport. */
-  private layoutTiles() {
-    const { present, finale } = this.layout;
-    const byCategory = new Map<number, ToolTile[]>();
-    for (const t of this.tiles) {
-      const list = byCategory.get(t.category) ?? [];
-      list.push(t);
-      byCategory.set(t.category, list);
-    }
-    const groups = [...byCategory.values()];
-
-    for (const list of groups) {
-      const grid = gridLayout(list.length, present.maxCols);
-      const s = Math.min(present.maxScale, present.w / grid.width, present.h / grid.height);
-      list.forEach((t, i) => {
-        const g = grid.positions[i];
-        t.slot.set(g.x * s, present.cy + g.y * s, present.z);
-        t.slotScale = s;
-      });
-    }
-
-    const blockGap = 0.26;
-    const blocks = groups.map((list) => gridLayout(list.length, finale.maxCols));
-    const totalH = blocks.reduce((h, b) => h + b.height, 0) + blockGap * (blocks.length - 1);
-    const maxW = Math.max(...blocks.map((b) => b.width));
-    const s = Math.min(finale.maxScale, finale.w / maxW, finale.h / totalH);
-    let cursor = totalH / 2;
-    groups.forEach((list, gi) => {
-      const block = blocks[gi];
-      const cy = cursor - block.height / 2;
-      list.forEach((t, i) => {
-        const g = block.positions[i];
-        t.finale.set(g.x * s, finale.cy + (cy + g.y) * s, finale.z);
-        t.finaleScale = s;
-      });
-      cursor -= block.height + blockGap;
     });
   }
 
@@ -802,7 +677,6 @@ export class ToolboxScene {
       this.height,
     );
     this.camera.updateProjectionMatrix();
-    this.layoutTiles();
   }
 
   /**
@@ -844,12 +718,10 @@ export class ToolboxScene {
   setPointer(ndcX: number, ndcY: number) {
     this.pointerNdc.set(ndcX, ndcY);
     this.pointerActive = true;
-    this.pointerMoved = true;
   }
 
   clearPointer() {
     this.pointerActive = false;
-    this.pointerMoved = true;
   }
 
   /** Advance the scene to the given scroll progress and draw. Returns true while still easing. */
@@ -858,9 +730,8 @@ export class ToolboxScene {
     this.applyMechanics(p);
     this.applyTiles(p);
     const camMoving = this.applyCamera(p, dt);
-    const hoverMoving = this.applyHover(dt);
     this.renderer.render(this.scene, this.camera);
-    return camMoving || hoverMoving;
+    return camMoving;
   }
 
   dispose() {
@@ -935,7 +806,6 @@ export class ToolboxScene {
     const lean = easeInOutCubic(progressIn(p, TIMELINE.overhead));
     for (const tile of this.tiles) {
       this.containerOrigin(tile.container, this.poseHome.pos).add(tile.homeLocal);
-      tile.presented = 0;
       tile.group.position.copy(this.poseHome.pos);
       tile.group.rotation.set(lerp(HOME_ROT_X, -1.2, lean), 0, 0);
       tile.group.scale.setScalar(tile.homeScale);
@@ -985,37 +855,5 @@ export class ToolboxScene {
     this.camera.lookAt(this.camTarget);
 
     return Math.abs(tx - this.parallax.x) > 0.001 || Math.abs(ty - this.parallax.y) > 0.001;
-  }
-
-  private applyHover(dt: number): boolean {
-    let next = this.hoveredIndex;
-    if (this.pointerMoved) {
-      this.pointerMoved = false;
-      if (this.pointerActive) {
-        this.raycaster.setFromCamera(this.pointerNdc, this.camera);
-        const candidates = this.tiles.filter((t) => t.presented > 0.95).map((t) => t.face);
-        const hit = candidates.length ? this.raycaster.intersectObjects(candidates, false)[0] : undefined;
-        next = hit ? (hit.object.userData.tileIndex as number) : -1;
-      } else {
-        next = -1;
-      }
-    }
-    if (next !== this.hoveredIndex) {
-      this.hoveredIndex = next;
-      this.renderer.domElement.style.cursor = next >= 0 ? 'pointer' : '';
-      this.options.onHoverChange?.(next >= 0 ? this.tiles[next].key : null);
-    }
-
-    const ease = 1 - Math.exp(-dt * 12);
-    let moving = false;
-    this.tiles.forEach((tile, idx) => {
-      const target = idx === this.hoveredIndex ? 1 : 0;
-      tile.hover += (target - tile.hover) * ease;
-      if (Math.abs(target - tile.hover) < 0.001) tile.hover = target;
-      else moving = true;
-      tile.glow.visible = tile.hover > 0.01;
-      tile.glow.material.opacity = tile.hover * 0.6;
-    });
-    return moving;
   }
 }

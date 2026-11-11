@@ -3,14 +3,25 @@ name: Mobile & compatibility checks
 on:
   push:
     branches: [main]
+    paths-ignore: ['**.md'] # docs-only changes don't affect the site
   pull_request:
+    paths-ignore: ['**.md']
   workflow_dispatch:
+
+# A newer push to the same branch cancels the older, still-running check.
+concurrency:
+  group: mobile-checks-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   mobile:
-    # Pinned: ubuntu-latest is 26.04, which Playwright 1.56 can't install browsers on yet.
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # Microsoft's Playwright image: Chromium + WebKit and all their system libraries are
+    # preinstalled, so nothing is downloaded or apt-installed on each run.
+    # The tag MUST match the @playwright/test version in package-lock.json — bump both together.
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,10 +29,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Unit tests (resume parser, contact-form guard)
+      - name: Unit tests (resume parser, contact rules, dates)
         run: npm run test:unit
-      - name: Install browsers (Chromium + WebKit = iOS Safari engine)
-        run: npx playwright install --with-deps chromium webkit
       - name: Run checks on iPhone 14, Pixel 7, iPad
         run: npx playwright test
       - name: Upload report (screens, traces) if anything failed

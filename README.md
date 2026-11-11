@@ -1,32 +1,41 @@
-# React + TypeScript + Vite
+# Naitik Gupta — Developer Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**Live:** https://creatorofc-gif.github.io/Naitik_newestportfolio/
 
-Currently, two official plugins are available:
+An interactive, scroll-driven portfolio built with React, TypeScript, Vite, Tailwind CSS and Three.js:
+a 3D toolbox of skills, a project whiteboard written by a marker, a walkable git-branch timeline of
+experience, and a mail-client contact form.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run it
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev        # http://localhost:5173/Naitik_newestportfolio/
+npm run build      # production build in dist/
+npm run test:unit  # resume parser, contact-form rules, date labels
+npm run test:mobile # iPhone / Pixel / iPad checks (needs Playwright browsers)
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Updating the content
+
+Most content comes from **the resume PDF in `src/data/`** (keep exactly one PDF there).
+Before every `dev`/`build`, `tools/parse-resume.mjs` reads it and fills in education,
+internships, projects and skills — and the site's "View Resume" button serves the same PDF.
+Replace the PDF, push, and the site updates. If the resume's layout changes so much that it
+can't be read, the build stops with an explanation instead of publishing wrong data.
+
+Things that aren't on the resume (commit messages, project subtitles, skill descriptions)
+are in the "Site-only extras" section at the top of `src/data/profileData.ts`.
+
+## Contact form
+
+Messages go to a Google Apps Script web app (`tools/contact-backend.gs`) that saves each one
+to a Google Sheet and emails a notification. Setup steps are at the top of that file. The site
+needs one GitHub repository variable: **`CONTACT_ENDPOINT`** = the web app URL
+(Settings → Secrets and variables → Actions → Variables). Without it, the form opens the
+visitor's mail app instead.
+
+## Deploy
+
+Pushing to `main` runs the mobile & unit checks; if they pass, GitHub Actions builds the site
+and publishes it to GitHub Pages (Settings → Pages → Source: GitHub Actions).

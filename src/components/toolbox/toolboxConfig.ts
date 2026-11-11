@@ -23,12 +23,13 @@ export const TIMELINE = {
   reveal: [0.54, 0.9],
 } as const satisfies Record<string, Range>;
 
-export const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+import { clamp01 } from '../../utils/scrollScene';
+
+export { clamp01 }; // one shared copy
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export const progressIn = (p: number, [a, b]: Range) => clamp01((p - a) / (b - a));
 export const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-export const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 /** Reveal window for a single compartment inside TIMELINE.reveal. */
 export function categoryWindow(index: number, count: number): Range {
@@ -41,23 +42,3 @@ export function categoryWindow(index: number, count: number): Range {
 export const categoryCode = (id: string) => id.split('-').join(' · ').toUpperCase();
 
 export const pad2 = (n: number) => String(n).padStart(2, '0');
-
-export type ToolboxStage =
-  | { kind: 'sealed' }
-  | { kind: 'opening' }
-  | { kind: 'overhead' }
-  | { kind: 'inside'; index: number };
-
-export function getStage(p: number, count: number): ToolboxStage {
-  if (p >= TIMELINE.dive[1]) {
-    const [a, b] = TIMELINE.reveal;
-    const index = Math.max(0, Math.min(count - 1, Math.floor(((p - a) / (b - a)) * count)));
-    return { kind: 'inside', index };
-  }
-  if (p >= TIMELINE.overhead[0]) return { kind: 'overhead' };
-  if (p >= TIMELINE.latch[0]) return { kind: 'opening' };
-  return { kind: 'sealed' };
-}
-
-export const isSameStage = (a: ToolboxStage, b: ToolboxStage) =>
-  a.kind === b.kind && (a.kind !== 'inside' || (b.kind === 'inside' && a.index === b.index));
