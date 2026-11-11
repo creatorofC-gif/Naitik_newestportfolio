@@ -92,7 +92,7 @@ test('contact form: send shows the confirmation', async ({ page }) => {
   // No contact endpoint in CI: the form hands off via mailto. Stop the navigation, keep the UI flow.
   await page.route('mailto:*', (r) => r.abort());
   await fillContact(page, 'recruiter@company.dev');
-  await expect(page.getByText(/Opened in your mail app|Delivered to/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/Opened in your mail app|Sent — I’ll reply/)).toBeVisible({ timeout: 10_000 });
 
   expect(errors, errors.join('\n')).toEqual([]);
 });
@@ -105,7 +105,7 @@ test('contact form: blocks an address whose domain cannot receive mail', async (
 
   await fillContact(page, 'recruiter@gmail.con');
   await expect(page.getByText(/can’t receive email/)).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByText(/Opened in your mail app|Delivered to/)).toHaveCount(0);
+  await expect(page.getByText(/Opened in your mail app|Sent — I’ll reply/)).toHaveCount(0);
 
   expect(errors, errors.join('\n')).toEqual([]);
 });

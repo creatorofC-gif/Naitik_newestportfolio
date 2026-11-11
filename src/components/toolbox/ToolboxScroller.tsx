@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { ArrowDown, Volume2, VolumeX } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 import { PROFILE_DATA } from '../../data/profileData';
-import { soundEffects } from '../../utils/soundEffects';
 import { runScrollScene } from '../../utils/scrollScene';
 import { scrollToY } from '../../utils/smoothScroll';
 import {
@@ -45,7 +44,6 @@ export const ToolboxScroller: React.FC = () => {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const [webGl, setWebGl] = useState(true);
-  const [isMuted, setIsMuted] = useState(soundEffects.getMuted());
 
   const categories = PROFILE_DATA.skillCategories;
   const skillCount = categories.reduce((n, c) => n + c.skills.length, 0);
@@ -71,7 +69,6 @@ export const ToolboxScroller: React.FC = () => {
     let rendered = -1;
     let sceneMoving = false;
     let canvasVisible = true;
-    let played = false;
     let ema = 1 / 60;
     let slowFrames = 0;
     let lastIntro = -1;
@@ -148,13 +145,6 @@ export const ToolboxScroller: React.FC = () => {
           cards[i].forEach((card, ci) => card.toggleAttribute('data-shown', ci < count));
         }
       });
-
-      if (p > TIMELINE.latch[0] && !played) {
-        played = true;
-        soundEffects.playToolboxOpen();
-      } else if (p <= TIMELINE.latch[0]) {
-        played = false;
-      }
 
       // Active compartment/tab via data attributes — no React re-render while scrolling.
       const insideNow = p >= TIMELINE.dive[1];
@@ -321,13 +311,6 @@ export const ToolboxScroller: React.FC = () => {
                     <span className="hidden lg:inline"> · {c.categoryName.split(' ')[0]}</span>
                   </button>
                 ))}
-                <button
-                  onClick={() => setIsMuted(soundEffects.toggleMute())}
-                  className="ml-2 rounded-full p-2 text-slate-400 transition-colors hover:text-ivory"
-                  aria-label={isMuted ? 'Unmute sound effects' : 'Mute sound effects'}
-                >
-                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </button>
               </div>
             </header>
 

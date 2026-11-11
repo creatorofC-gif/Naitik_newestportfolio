@@ -9,13 +9,10 @@ import {
   Paperclip,
   Copy,
   Check,
-  CheckCircle2,
   Loader2,
-  ArrowLeft,
   Search,
 } from 'lucide-react';
 import { PROFILE_DATA } from '../data/profileData';
-import { soundEffects } from '../utils/soundEffects';
 import { runScrollScene, clamp01 } from '../utils/scrollScene';
 import { GithubIcon, LinkedinIcon } from './SocialIcons';
 import { LIMITS, validateContact, domainAcceptsMail, emailDomain, rateLimitError, recordSend } from '../utils/contactGuard';
@@ -85,7 +82,7 @@ const SEED_INBOX: Mail[] = [
   },
 ];
 
-type Status = 'compose' | 'sending' | 'sent';
+type Status = 'compose' | 'sending';
 
 export const ContactDirect: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -97,7 +94,7 @@ export const ContactDirect: React.FC = () => {
   const [status, setStatus] = useState<Status>('compose');
   const [error, setError] = useState<string | null>(null);
   const [inbox, setInbox] = useState<Mail[]>(SEED_INBOX);
-  const [sent, setSent] = useState<{ mail: Mail; body: string; email: string; via: 'endpoint' | 'mailto' } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null); // success line under the Send button
   const [copied, setCopied] = useState(false);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const composeStart = useRef(Date.now());
@@ -146,8 +143,8 @@ export const ContactDirect: React.FC = () => {
       return;
     }
     setError(null);
+    setNotice(null);
     setStatus('sending');
-    soundEffects.playHoverTick();
 
     const subject = form.subject.trim() || `Hello from ${form.name.trim()}`;
     const minDelay = new Promise((r) => setTimeout(r, 900));
@@ -207,16 +204,21 @@ export const ContactDirect: React.FC = () => {
       fresh: true,
     };
     setInbox((list) => [mail, ...list.map((m) => ({ ...m, fresh: false }))]);
-    setSent({ mail, body: form.message.trim(), email: form.email.trim(), via });
-    setStatus('sent');
-    soundEffects.playEnvelopeSend();
+    setNotice(
+      via === 'endpoint'
+        ? `Sent — I’ll reply to ${form.email.trim()} soon.`
+        : 'Opened in your mail app — hit send there and it reaches me.',
+    );
+    setForm({ name: '', email: '', subject: '', message: '' });
+    composeStart.current = Date.now(); // fresh form: restart the "too fast to be human" timer
+    setStatus('compose');
   };
 
   const composeAnother = () => {
     setForm({ name: '', email: '', subject: '', message: '' });
     composeStart.current = Date.now(); // fresh form: restart the "too fast to be human" timer
-    setSent(null);
-    setStatus('compose');
+    setNotice(null);
+    setError(null);
   };
 
   const copyEmail = () => {
@@ -226,7 +228,7 @@ export const ContactDirect: React.FC = () => {
   };
 
   const field =
-    'w-full bg-transparent text-[13px] text-ivory placeholder:text-slate-600 outline-none';
+    'w-full bg-transparent text-base md:text-[13px] text-ivory placeholder:text-slate-600 outline-none'; // <16px makes iOS zoom on focus
 
   return (
     <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950" style={{ height: '185vh' }}>
@@ -345,135 +347,76 @@ export const ContactDirect: React.FC = () => {
 
                     {/* Reading / compose pane */}
                     <div className="relative min-w-0 flex-1">
-                      <AnimatePresence mode="wait">
-                        {status !== 'sent' ? (
-                          <motion.form
-                            key="compose"
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              send();
-                            }}
-                            onKeyDown={(e) => {
-                              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send();
-                            }}
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -40, scale: 0.94, transition: { duration: 0.35, ease: [0.76, 0, 0.24, 1] } }}
-                            className="flex h-full flex-col"
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          send();
+                        }}
+                        onKeyDown={(e) => {
+                          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send();
+                        }}
+                        className="flex h-full flex-col"
+                      >
+                        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
+                          <p className="text-[13px] font-medium text-ivory">New message</p>
+                          <Paperclip className="h-3.5 w-3.5 text-slate-600" />
+                        </div>
+
+                        <div className="divide-y divide-slate-800 border-b border-slate-800 px-5">
+                          <div className="flex items-center gap-3 py-2.5">
+                            <span className="w-16 shrink-0 text-[12px] text-slate-500">To</span>
+                            <span className="truncate rounded-full bg-obsidian-800 px-2.5 py-0.5 text-[12px] text-slate-200">
+                              {PROFILE_DATA.personal.name} &lt;{email}&gt;
+                            </span>
+                          </div>
+                          <label className="flex items-center gap-3 py-2.5">
+                            <span className="w-16 shrink-0 text-[12px] text-slate-500">From</span>
+                            <input value={form.name} onChange={update('name')} placeholder="Your name" autoComplete="name" maxLength={LIMITS.name.max} className={field} required />
+                          </label>
+                          <label className="flex items-center gap-3 py-2.5">
+                            <span className="w-16 shrink-0 text-[12px] text-slate-500">Reply-to</span>
+                            <input type="email" value={form.email} onChange={update('email')} placeholder="you@company.com" autoComplete="email" maxLength={LIMITS.email.max} className={field} required />
+                          </label>
+                          <label className="flex items-center gap-3 py-2.5">
+                            <span className="w-16 shrink-0 text-[12px] text-slate-500">Subject</span>
+                            <input value={form.subject} onChange={update('subject')} placeholder="Internship, project, or just hello" maxLength={LIMITS.subject.max} className={field} />
+                          </label>
+                          {/* Honeypot: invisible to people, bots fill it in */}
+                          <input
+                            ref={honeypotRef}
+                            name="botcheck"
+                            type="text"
+                            tabIndex={-1}
+                            autoComplete="off"
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
+                          />
+                        </div>
+
+                        <textarea
+                          value={form.message}
+                          onChange={update('message')}
+                          maxLength={LIMITS.message.max}
+                          placeholder={`Hi ${PROFILE_DATA.personal.name.split(' ')[0]},\n\n`}
+                          data-lenis-prevent
+                          className={`${field} min-h-0 flex-1 resize-none px-5 py-4 leading-relaxed`}
+                          required
+                        />
+
+                        <div className="flex flex-wrap items-center gap-3 border-t border-slate-800 px-5 py-3">
+                          <button
+                            type="submit"
+                            disabled={status === 'sending'}
+                            className="btn-accent flex items-center gap-2 rounded-lg px-4 py-2 text-[12.5px] font-medium disabled:opacity-70"
                           >
-                            <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
-                              <p className="text-[13px] font-medium text-ivory">New message</p>
-                              <Paperclip className="h-3.5 w-3.5 text-slate-600" />
-                            </div>
-
-                            <div className="divide-y divide-slate-800 border-b border-slate-800 px-5">
-                              <div className="flex items-center gap-3 py-2.5">
-                                <span className="w-16 shrink-0 text-[12px] text-slate-500">To</span>
-                                <span className="truncate rounded-full bg-obsidian-800 px-2.5 py-0.5 text-[12px] text-slate-200">
-                                  {PROFILE_DATA.personal.name} &lt;{email}&gt;
-                                </span>
-                              </div>
-                              <label className="flex items-center gap-3 py-2.5">
-                                <span className="w-16 shrink-0 text-[12px] text-slate-500">From</span>
-                                <input value={form.name} onChange={update('name')} placeholder="Your name" autoComplete="name" maxLength={LIMITS.name.max} className={field} required />
-                              </label>
-                              <label className="flex items-center gap-3 py-2.5">
-                                <span className="w-16 shrink-0 text-[12px] text-slate-500">Reply-to</span>
-                                <input type="email" value={form.email} onChange={update('email')} placeholder="you@company.com" autoComplete="email" maxLength={LIMITS.email.max} className={field} required />
-                              </label>
-                              <label className="flex items-center gap-3 py-2.5">
-                                <span className="w-16 shrink-0 text-[12px] text-slate-500">Subject</span>
-                                <input value={form.subject} onChange={update('subject')} placeholder="Internship, project, or just hello" maxLength={LIMITS.subject.max} className={field} />
-                              </label>
-                              {/* Honeypot: invisible to people, bots fill it in */}
-                              <input
-                                ref={honeypotRef}
-                                name="botcheck"
-                                type="text"
-                                tabIndex={-1}
-                                autoComplete="off"
-                                aria-hidden="true"
-                                className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
-                              />
-                            </div>
-
-                            <textarea
-                              value={form.message}
-                              onChange={update('message')}
-                              maxLength={LIMITS.message.max}
-                              placeholder={`Hi ${PROFILE_DATA.personal.name.split(' ')[0]},\n\n`}
-                              className={`${field} min-h-0 flex-1 resize-none px-5 py-4 leading-relaxed`}
-                              required
-                            />
-
-                            <div className="flex flex-wrap items-center gap-3 border-t border-slate-800 px-5 py-3">
-                              <button
-                                type="submit"
-                                disabled={status === 'sending'}
-                                className="btn-accent flex items-center gap-2 rounded-lg px-4 py-2 text-[12.5px] font-medium disabled:opacity-70"
-                              >
-                                {status === 'sending' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                                {status === 'sending' ? 'Sending…' : 'Send'}
-                              </button>
-                              <span className="hidden font-mono text-[10px] text-slate-600 sm:inline">Ctrl / ⌘ + Enter</span>
-                              {error && <span className="text-[12px] text-red-400">{error}</span>}
-                            </div>
-                          </motion.form>
-                        ) : (
-                          sent && (
-                            <motion.div
-                              key="sent"
-                              initial={{ opacity: 0, y: 16 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                              className="flex h-full flex-col"
-                            >
-                              <div className="flex items-start gap-3 border-b border-slate-800 bg-gold-accent/10 px-5 py-3">
-                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-gold-accent" />
-                                <div className="text-[12.5px]">
-                                  <p className="font-medium text-ivory">
-                                    {sent.via === 'endpoint' ? `Delivered to ${PROFILE_DATA.personal.name.split(' ')[0]}’s inbox` : 'Opened in your mail app'}
-                                  </p>
-                                  <p className="mt-0.5 text-slate-400">
-                                    {sent.via === 'endpoint'
-                                      ? `I’ll reply to ${sent.email} soon.`
-                                      : 'Hit send there and it lands in my inbox — I’ll reply soon.'}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-                                <h3 className="text-lg font-medium text-ivory">{sent.mail.subject}</h3>
-                                <div className="mt-3 flex items-center gap-3">
-                                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-accent/20 font-mono text-[11px] text-gold-light">
-                                    {sent.mail.from
-                                      .split(/\s+/)
-                                      .map((w) => w[0])
-                                      .join('')
-                                      .slice(0, 2)
-                                      .toUpperCase()}
-                                  </span>
-                                  <div className="text-[12px]">
-                                    <p className="text-ivory">
-                                      {sent.mail.from} <span className="text-slate-500">&lt;{sent.email}&gt;</span>
-                                    </p>
-                                    <p className="text-slate-500">to {PROFILE_DATA.personal.name} · just now</p>
-                                  </div>
-                                </div>
-                                <p className="mt-5 whitespace-pre-wrap text-[13px] leading-relaxed text-slate-300">{sent.body}</p>
-                              </div>
-                              <div className="border-t border-slate-800 px-5 py-3">
-                                <button
-                                  onClick={composeAnother}
-                                  className="flex items-center gap-2 rounded-lg border border-slate-700 px-3.5 py-1.5 text-[12px] text-slate-300 transition-colors hover:border-slate-500 hover:text-ivory"
-                                >
-                                  <ArrowLeft className="h-3.5 w-3.5" /> Write another
-                                </button>
-                              </div>
-                            </motion.div>
-                          )
-                        )}
-                      </AnimatePresence>
+                            {status === 'sending' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                            {status === 'sending' ? 'Sending…' : 'Send'}
+                          </button>
+                          <span className="hidden font-mono text-[10px] text-slate-600 sm:inline">Ctrl / ⌘ + Enter</span>
+                          {error && <span role="alert" className="text-[12px] text-red-400">{error}</span>}
+                          {notice && !error && <span role="status" className="text-[12px] text-gold-accent">{notice}</span>}
+                        </div>
+                      </form>
                     </div>
                   </div>
                 </div>
