@@ -24,9 +24,13 @@ import { LIMITS, validateContact, domainAcceptsMail, emailDomain, rateLimitError
 
    Delivery: a Google Apps Script web app (tools/contact-backend.gs) attached
    to a Google Sheet. It stores each message as a row and emails me.
-   Set VITE_CONTACT_ENDPOINT to the web app URL. Without an endpoint
-   (local dev, CI) Send hands the message to the visitor's own mail app
-   via mailto: and says so honestly.
+   ENDPOINT below is that web app's URL. It isn't a secret: every visitor's
+   browser sees it, and the backend does all the checking. If you redeploy
+   the script as a *new* deployment, paste the new URL here.
+
+   Phones: no scroll animation and no pinning — the computer is a normal
+   block on the page, so tapping a field and opening the keyboard behaves
+   like any other form.
 
    Spam protection: browser checks in utils/contactGuard.ts (valid address
    whose domain can receive mail, no throwaway inboxes, length/link/caps
@@ -38,7 +42,8 @@ import { LIMITS, validateContact, domainAcceptsMail, emailDomain, rateLimitError
    on one layer, written only when values change.
    ────────────────────────────────────────────────────────────── */
 
-const ENDPOINT: string | undefined = import.meta.env.VITE_CONTACT_ENDPOINT;
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxNuPsAywqROBg2U22_Dfkcf1g71B9YWY0WcZW8hCDGc25rhr7qzIA8s8aoJZktHXHBOg/exec';
+const PHONE = '(max-width: 767px)'; // matches Tailwind's md breakpoint used below
 const storage = () => {
   try {
     return window.localStorage;
@@ -106,24 +111,34 @@ export const ContactDirect: React.FC = () => {
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
+    const apply = (rise: number, power: number) => {
+      if (rigRef.current) {
+        rigRef.current.style.transform = `translate3d(0, ${(1 - rise) * 140}px, 0) scale(${0.84 + 0.16 * rise}) rotateX(${(1 - rise) * 20}deg)`;
+        rigRef.current.style.opacity = String(0.15 + 0.85 * rise);
+      }
+      if (headRef.current) {
+        headRef.current.style.opacity = String(rise);
+        headRef.current.style.transform = `translate3d(0, ${(1 - rise) * 24}px, 0)`;
+      }
+      if (screenOffRef.current) {
+        screenOffRef.current.style.opacity = String(1 - power);
+        screenOffRef.current.style.visibility = power >= 1 ? 'hidden' : 'visible';
+      }
+    };
+    // Phones: show it finished and static. Scroll-linked motion fights the on-screen keyboard.
+    if (window.matchMedia(PHONE).matches) {
+      apply(1, 1);
+      return;
+    }
     let lastRise = -1;
     let lastPower = -1;
     const handle = runScrollScene(section, (p) => {
       const rise = Math.round(ease(progressIn(p, 0, 0.5)) * 400) / 400;
       const power = Math.round(progressIn(p, 0.45, 0.62) * 100) / 100;
-      if (rise !== lastRise && rigRef.current) {
+      if (rise !== lastRise || power !== lastPower) {
         lastRise = rise;
-        rigRef.current.style.transform = `translate3d(0, ${(1 - rise) * 140}px, 0) scale(${0.84 + 0.16 * rise}) rotateX(${(1 - rise) * 20}deg)`;
-        rigRef.current.style.opacity = String(0.15 + 0.85 * rise);
-        if (headRef.current) {
-          headRef.current.style.opacity = String(rise);
-          headRef.current.style.transform = `translate3d(0, ${(1 - rise) * 24}px, 0)`;
-        }
-      }
-      if (power !== lastPower && screenOffRef.current) {
         lastPower = power;
-        screenOffRef.current.style.opacity = String(1 - power);
-        screenOffRef.current.style.visibility = power >= 1 ? 'hidden' : 'visible';
+        apply(rise, power);
       }
       return false;
     });
@@ -148,7 +163,6 @@ export const ContactDirect: React.FC = () => {
 
     const subject = form.subject.trim() || `Hello from ${form.name.trim()}`;
     const minDelay = new Promise((r) => setTimeout(r, 900));
-    let via: 'endpoint' | 'mailto' = 'mailto';
 
     try {
       if (!fakeSuccess && (await domainAcceptsMail(emailDomain(form.email))) === false) {
@@ -157,9 +171,7 @@ export const ContactDirect: React.FC = () => {
         setError(`“${emailDomain(form.email)}” can’t receive email — check the address for typos.`);
         return;
       }
-      if (fakeSuccess) {
-        via = 'endpoint';
-      } else if (ENDPOINT) {
+      if (!fakeSuccess) {
         // No custom headers: a "simple" request, so the browser doesn't send a CORS preflight
         // (Apps Script web apps can't answer one). The server re-checks everything.
         const res = await fetch(ENDPOINT, {
@@ -181,10 +193,6 @@ export const ContactDirect: React.FC = () => {
           setError(data.error ? data.error : `Couldn’t send just now — email me directly at ${email}.`);
           return;
         }
-        via = 'endpoint';
-      } else {
-        const body = `${form.message.trim()}\n\n— ${form.name.trim()} (${form.email.trim()})`;
-        window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       }
       if (!fakeSuccess) recordSend(storage());
       await minDelay;
@@ -204,11 +212,7 @@ export const ContactDirect: React.FC = () => {
       fresh: true,
     };
     setInbox((list) => [mail, ...list.map((m) => ({ ...m, fresh: false }))]);
-    setNotice(
-      via === 'endpoint'
-        ? `Sent — I’ll reply to ${form.email.trim()} soon.`
-        : 'Opened in your mail app — hit send there and it reaches me.',
-    );
+    setNotice('Your message has been sent. I’ll get back to you soon.');
     setForm({ name: '', email: '', subject: '', message: '' });
     composeStart.current = Date.now(); // fresh form: restart the "too fast to be human" timer
     setStatus('compose');
@@ -231,8 +235,8 @@ export const ContactDirect: React.FC = () => {
     'w-full bg-transparent text-base md:text-[13px] text-ivory placeholder:text-slate-600 outline-none'; // <16px makes iOS zoom on focus
 
   return (
-    <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950" style={{ height: '185vh' }}>
-      <div className="sticky top-0 flex h-viewport flex-col items-center justify-center overflow-hidden px-4 py-6">
+    <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950 md:h-[185vh]">
+      <div className="flex flex-col items-center justify-center overflow-hidden px-4 py-16 md:sticky md:top-0 md:h-viewport md:py-6">
         {/* Desk light */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(200, 242, 92,0.09),transparent_60%)]" />
 
@@ -253,7 +257,7 @@ export const ContactDirect: React.FC = () => {
                 boxShadow: '0 40px 80px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.05)',
               }}
             >
-              <div className="relative h-[68vh] overflow-hidden rounded-[10px] bg-obsidian-900 md:aspect-[16/10] md:h-auto">
+              <div className="relative h-[600px] overflow-hidden rounded-[10px] bg-obsidian-900 md:aspect-[16/10] md:h-auto">
                 {/* Mail app */}
                 <div className="flex h-full flex-col text-left">
                   {/* Title bar */}

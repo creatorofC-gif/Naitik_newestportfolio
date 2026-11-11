@@ -30,10 +30,9 @@ are in the "Site-only extras" section at the top of `src/data/profileData.ts`.
 ## Contact form
 
 Messages go to a Google Apps Script web app (`tools/contact-backend.gs`) that saves each one
-to a Google Sheet and emails a notification. Setup steps are at the top of that file. The site
-needs one GitHub repository variable: **`CONTACT_ENDPOINT`** = the web app URL
-(Settings → Secrets and variables → Actions → Variables). Without it, the form opens the
-visitor's mail app instead.
+to a Google Sheet and emails a notification. Setup steps are at the top of that file. The web
+app's URL is the `ENDPOINT` constant in `src/components/ContactDirect.tsx` (it's public by
+nature); if you create a new deployment, paste its URL there.
 
 ## Deploy
 

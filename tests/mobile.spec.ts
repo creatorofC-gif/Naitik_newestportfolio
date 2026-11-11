@@ -89,10 +89,10 @@ test('contact form: send shows the confirmation', async ({ page }) => {
   await fakeDns(page);
   await waitForIntro(page);
 
-  // No contact endpoint in CI: the form hands off via mailto. Stop the navigation, keep the UI flow.
-  await page.route('mailto:*', (r) => r.abort());
+  // Stand-in for the Apps Script backend, so the check never writes to the real sheet.
+  await page.route('https://script.google.com/**', (r) => r.fulfill({ contentType: 'application/json', body: '{"ok":true}' }));
   await fillContact(page, 'recruiter@company.dev');
-  await expect(page.getByText(/Opened in your mail app|Sent — I’ll reply/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/Your message has been sent/)).toBeVisible({ timeout: 10_000 });
 
   expect(errors, errors.join('\n')).toEqual([]);
 });
@@ -101,11 +101,12 @@ test('contact form: blocks an address whose domain cannot receive mail', async (
   const errors: string[] = [];
   await openSite(page, errors);
   await fakeDns(page);
+  await page.route('https://script.google.com/**', (r) => r.fulfill({ contentType: 'application/json', body: '{"ok":true}' }));
   await waitForIntro(page);
 
   await fillContact(page, 'recruiter@gmail.con');
   await expect(page.getByText(/can’t receive email/)).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByText(/Opened in your mail app|Sent — I’ll reply/)).toHaveCount(0);
+  await expect(page.getByText(/Your message has been sent/)).toHaveCount(0);
 
   expect(errors, errors.join('\n')).toEqual([]);
 });
