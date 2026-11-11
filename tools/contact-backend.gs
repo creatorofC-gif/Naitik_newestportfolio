@@ -96,7 +96,7 @@ function doPost(e) {
   // The message is saved: the visitor is told "delivered" even if the email to you fails
   // (the failure goes in the row's Notes, so nothing is lost or duplicated by a retry).
   try {
-    notifyOwner_(d, row);
+    notifyOwner_(d);
   } catch (err) {
     note_(row, 'Notification email failed: ' + err);
   }
@@ -210,14 +210,15 @@ function rateLimit_(email) {
   return null;
 }
 
-function notifyOwner_(d, row) {
-  const url = book_().getUrl() + '#gid=' + book_().getSheetByName('Messages').getSheetId() + '&range=A' + row;
+function notifyOwner_(d) {
+  // Gmail only sends from your own account, so the sender's *name* is shown as the From name
+  // and Reply-To is their address: in your inbox it reads "Priya Sharma", and Reply goes to them.
   MailApp.sendEmail({
     to: CONFIG.ownerEmail,
     replyTo: d.email,
-    name: 'Portfolio contact form',
-    subject: `Portfolio: ${d.subject || 'New message'} — ${d.name}`,
-    body: `${d.name} <${d.email}> wrote:\n\n${d.message}\n\n—\nReply to this email to answer them directly.\nAll messages: ${url}`,
+    name: d.name,
+    subject: d.subject || 'New message from your portfolio',
+    body: `${d.message}\n\n${d.name}\n${d.email}`,
   });
 }
 

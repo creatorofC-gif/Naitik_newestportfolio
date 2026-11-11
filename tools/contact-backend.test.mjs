@@ -53,7 +53,9 @@ test('a valid message is saved and you are notified; nothing is emailed to the s
   assert.equal(mail.length, 1);
   assert.equal(mail[0].to, 'naitikg1103@gmail.com');
   assert.equal(mail[0].replyTo, 'priya@company.dev');
-  assert.match(mail[0].body, /Priya Sharma <priya@company.dev> wrote:[\s\S]*summer internship/);
+  assert.equal(mail[0].name, 'Priya Sharma'); // inbox shows the sender's name, not yours
+  assert.match(mail[0].body, /summer internship[\s\S]*Priya Sharma\npriya@company.dev$/);
+  assert.doesNotMatch(mail[0].body, /docs\.google|Reply to this email/); // plain text only
 });
 
 test('bots get a fake "ok" but nothing is saved or sent', () => {
