@@ -30,3 +30,8 @@ test-results/
 # Resume pipeline outputs (regenerated from src/data/*.pdf on every dev/build)
 src/data/resume.generated.json
 public/resume.pdf
+
+# Environment files: never commit keys or secrets
+.env
+.env.*
+!.env.example

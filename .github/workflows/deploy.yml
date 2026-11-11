@@ -28,6 +28,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Contact form (public values). Set under Settings → Secrets and variables → Actions → Variables.
+          VITE_CONTACT_ENDPOINT: ${{ vars.CONTACT_ENDPOINT }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

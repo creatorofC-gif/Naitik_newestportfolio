@@ -18,8 +18,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Resume parser tests
-        run: npm run test:resume
+      - name: Unit tests (resume parser, contact-form guard)
+        run: npm run test:unit
       - name: Install browsers (Chromium + WebKit = iOS Safari engine)
         run: npx playwright install --with-deps chromium webkit
       - name: Run checks on iPhone 14, Pixel 7, iPad

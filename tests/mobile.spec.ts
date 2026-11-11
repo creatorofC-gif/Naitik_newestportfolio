@@ -65,19 +65,47 @@ test('every section fits the screen: no sideways scroll, pinned views fill the v
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
+/** Stand-in for Google DNS: company.dev can receive mail, gmail.con doesn't exist. */
+async function fakeDns(page: Page) {
+  await page.route('https://dns.google/**', (route) => {
+    const name = new URL(route.request().url()).searchParams.get('name');
+    const body = name === 'company.dev' ? { Status: 0, Answer: [{ type: 15, data: '10 mx.company.dev.' }] } : { Status: 3 };
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
+  });
+}
+
+async function fillContact(page: Page, email: string) {
+  await page.evaluate(() => document.getElementById('contact')!.scrollIntoView());
+  await page.getByPlaceholder('Your name').fill('Test Recruiter');
+  await page.getByPlaceholder('you@company.com').fill(email);
+  await page.locator('#contact textarea').fill('Hello from the mobile check — are you open to an internship?');
+  await page.waitForTimeout(3100); // past the "too fast to be human" timer
+  await page.getByRole('button', { name: 'Send' }).click();
+}
+
 test('contact form: send shows the confirmation', async ({ page }) => {
   const errors: string[] = [];
   await openSite(page, errors);
+  await fakeDns(page);
   await waitForIntro(page);
-  await page.evaluate(() => document.getElementById('contact')!.scrollIntoView());
 
-  // No endpoint in CI: the form hands off via mailto. Stop the navigation, keep the UI flow.
+  // No contact endpoint in CI: the form hands off via mailto. Stop the navigation, keep the UI flow.
   await page.route('mailto:*', (r) => r.abort());
-  await page.getByPlaceholder('Your name').fill('Test Recruiter');
-  await page.getByPlaceholder('you@company.com').fill('recruiter@example.com');
-  await page.locator('#contact textarea').fill('Hello from the mobile check.');
-  await page.getByRole('button', { name: 'Send' }).click();
+  await fillContact(page, 'recruiter@company.dev');
   await expect(page.getByText(/Opened in your mail app|Delivered to/)).toBeVisible({ timeout: 10_000 });
+
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('contact form: blocks an address whose domain cannot receive mail', async ({ page }) => {
+  const errors: string[] = [];
+  await openSite(page, errors);
+  await fakeDns(page);
+  await waitForIntro(page);
+
+  await fillContact(page, 'recruiter@gmail.con');
+  await expect(page.getByText(/can’t receive email/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/Opened in your mail app|Delivered to/)).toHaveCount(0);
 
   expect(errors, errors.join('\n')).toEqual([]);
 });

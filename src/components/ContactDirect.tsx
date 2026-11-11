@@ -18,21 +18,37 @@ import { PROFILE_DATA } from '../data/profileData';
 import { soundEffects } from '../utils/soundEffects';
 import { runScrollScene, clamp01 } from '../utils/scrollScene';
 import { GithubIcon, LinkedinIcon } from './SocialIcons';
+import { LIMITS, validateContact, domainAcceptsMail, emailDomain, rateLimitError, recordSend } from '../utils/contactGuard';
 
 /* ──────────────────────────────────────────────────────────────
    Contact — a desktop computer rises into view as you scroll, its
    screen powers on into a mail client, and you write to me in the
    compose window. On send, the message lands at the top of the inbox.
 
-   Delivery: set VITE_CONTACT_ENDPOINT (e.g. a Formspree form URL) to
-   deliver straight to my inbox. Without it, Send hands the message to
-   the visitor's own mail app via mailto: and says so honestly.
+   Delivery: a Google Apps Script web app (tools/contact-backend.gs) attached
+   to a Google Sheet. It stores each message as a row and emails me.
+   Set VITE_CONTACT_ENDPOINT to the web app URL. Without an endpoint
+   (local dev, CI) Send hands the message to the visitor's own mail app
+   via mailto: and says so honestly.
+
+   Spam protection: browser checks in utils/contactGuard.ts (valid address
+   whose domain can receive mail, no throwaway inboxes, length/link/caps
+   limits, a too-fast-to-be-human timer, per-browser send limits). The
+   backend repeats every check server-side (bots can skip the browser) and
+   adds the honeypot, a flood guard, and per-sender/daily limits.
 
    Performance: CSS only (no WebGL); scroll motion is transform/opacity
    on one layer, written only when values change.
    ────────────────────────────────────────────────────────────── */
 
 const ENDPOINT: string | undefined = import.meta.env.VITE_CONTACT_ENDPOINT;
+const storage = () => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+};
 const ease = (t: number) => 1 - Math.pow(1 - t, 3);
 const progressIn = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 
@@ -83,6 +99,8 @@ export const ContactDirect: React.FC = () => {
   const [inbox, setInbox] = useState<Mail[]>(SEED_INBOX);
   const [sent, setSent] = useState<{ mail: Mail; body: string; email: string; via: 'endpoint' | 'mailto' } | null>(null);
   const [copied, setCopied] = useState(false);
+  const honeypotRef = useRef<HTMLInputElement>(null);
+  const composeStart = useRef(Date.now());
 
   const email = PROFILE_DATA.personal.email;
   const { github, linkedin } = PROFILE_DATA.personal.socials;
@@ -120,12 +138,11 @@ export const ContactDirect: React.FC = () => {
 
   const send = async () => {
     if (status === 'sending') return;
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      setError('Name, your email and a message are required.');
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      setError('That email address doesn’t look right.');
+    const fakeSuccess = !!honeypotRef.current?.value; // a bot filled the hidden field: pretend, send nothing
+    const problem = fakeSuccess ? null : (validateContact(form, Date.now() - composeStart.current) ?? rateLimitError(storage()));
+    if (problem) {
+      setError(problem);
+      if (problem.startsWith('That was quick')) composeStart.current = Date.now() - LIMITS.minFillMs; // a person retrying is fine
       return;
     }
     setError(null);
@@ -137,18 +154,42 @@ export const ContactDirect: React.FC = () => {
     let via: 'endpoint' | 'mailto' = 'mailto';
 
     try {
-      if (ENDPOINT) {
+      if (!fakeSuccess && (await domainAcceptsMail(emailDomain(form.email))) === false) {
+        await minDelay;
+        setStatus('compose');
+        setError(`“${emailDomain(form.email)}” can’t receive email — check the address for typos.`);
+        return;
+      }
+      if (fakeSuccess) {
+        via = 'endpoint';
+      } else if (ENDPOINT) {
+        // No custom headers: a "simple" request, so the browser doesn't send a CORS preflight
+        // (Apps Script web apps can't answer one). The server re-checks everything.
         const res = await fetch(ENDPOINT, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ name: form.name, email: form.email, subject, message: form.message }),
+          body: JSON.stringify({
+            name: form.name.trim(),
+            email: form.email.trim(),
+            subject,
+            message: form.message.trim(),
+            botcheck: honeypotRef.current?.value ?? '',
+            elapsedMs: Date.now() - composeStart.current,
+            page: window.location.pathname,
+          }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+        if (!data.ok) {
+          await minDelay;
+          setStatus('compose');
+          setError(data.error ? data.error : `Couldn’t send just now — email me directly at ${email}.`);
+          return;
+        }
         via = 'endpoint';
       } else {
-        const body = `${form.message}\n\n— ${form.name} (${form.email})`;
+        const body = `${form.message.trim()}\n\n— ${form.name.trim()} (${form.email.trim()})`;
         window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       }
+      if (!fakeSuccess) recordSend(storage());
       await minDelay;
     } catch {
       await minDelay;
@@ -173,6 +214,7 @@ export const ContactDirect: React.FC = () => {
 
   const composeAnother = () => {
     setForm({ name: '', email: '', subject: '', message: '' });
+    composeStart.current = Date.now(); // fresh form: restart the "too fast to be human" timer
     setSent(null);
     setStatus('compose');
   };
@@ -333,21 +375,32 @@ export const ContactDirect: React.FC = () => {
                               </div>
                               <label className="flex items-center gap-3 py-2.5">
                                 <span className="w-16 shrink-0 text-[12px] text-slate-500">From</span>
-                                <input value={form.name} onChange={update('name')} placeholder="Your name" autoComplete="name" className={field} required />
+                                <input value={form.name} onChange={update('name')} placeholder="Your name" autoComplete="name" maxLength={LIMITS.name.max} className={field} required />
                               </label>
                               <label className="flex items-center gap-3 py-2.5">
                                 <span className="w-16 shrink-0 text-[12px] text-slate-500">Reply-to</span>
-                                <input type="email" value={form.email} onChange={update('email')} placeholder="you@company.com" autoComplete="email" className={field} required />
+                                <input type="email" value={form.email} onChange={update('email')} placeholder="you@company.com" autoComplete="email" maxLength={LIMITS.email.max} className={field} required />
                               </label>
                               <label className="flex items-center gap-3 py-2.5">
                                 <span className="w-16 shrink-0 text-[12px] text-slate-500">Subject</span>
-                                <input value={form.subject} onChange={update('subject')} placeholder="Internship, project, or just hello" className={field} />
+                                <input value={form.subject} onChange={update('subject')} placeholder="Internship, project, or just hello" maxLength={LIMITS.subject.max} className={field} />
                               </label>
+                              {/* Honeypot: invisible to people, bots fill it in */}
+                              <input
+                                ref={honeypotRef}
+                                name="botcheck"
+                                type="text"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                aria-hidden="true"
+                                className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
+                              />
                             </div>
 
                             <textarea
                               value={form.message}
                               onChange={update('message')}
+                              maxLength={LIMITS.message.max}
                               placeholder={`Hi ${PROFILE_DATA.personal.name.split(' ')[0]},\n\n`}
                               className={`${field} min-h-0 flex-1 resize-none px-5 py-4 leading-relaxed`}
                               required
