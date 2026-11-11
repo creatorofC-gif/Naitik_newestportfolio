@@ -81,11 +81,10 @@ function doPost(e) {
   // Rate limits + write are done under a lock so simultaneous requests can't slip past them.
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return json_({ ok: false, error: 'Busy right now — please try again in a moment.' });
-  let row;
   try {
     const limited = rateLimit_(d.email);
     if (limited) return json_({ ok: false, error: limited });
-    row = saveMessage_(d, input.page);
+    saveMessage_(d, input.page);
   } catch (err) {
     console.error(err);
     return json_({ ok: false, error: 'Couldn’t send just now.' });
@@ -94,11 +93,11 @@ function doPost(e) {
   }
 
   // The message is saved: the visitor is told "delivered" even if the email to you fails
-  // (the failure goes in the row's Notes, so nothing is lost or duplicated by a retry).
+  // (the row is already in the sheet, so nothing is lost; the error shows under Executions).
   try {
     notifyOwner_(d);
   } catch (err) {
-    note_(row, 'Notification email failed: ' + err);
+    console.error('Notification email failed: ' + err);
   }
   return json_({ ok: true });
 }
@@ -115,7 +114,7 @@ function setup() {
   if (!ss) throw new Error('Run setup from the script opened via the sheet (Extensions → Apps Script).');
   PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
 
-  const messages = sheet_(ss, 'Messages', ['Received', 'Name', 'Email', 'Subject', 'Message', 'Status', 'Page', 'Notes']);
+  const messages = sheet_(ss, 'Messages', ['Received', 'Name', 'Email', 'Subject', 'Message', 'Status', 'Page']);
   messages.setColumnWidths(1, 1, 150).setColumnWidths(2, 1, 150).setColumnWidths(3, 1, 220).setColumnWidths(4, 1, 200).setColumnWidth(5, 420);
   messages.getRange('E:E').setWrap(true);
   const status = SpreadsheetApp.newDataValidation().requireValueInList(['New', 'Replied', 'Spam', 'Archived'], true).build();
@@ -145,17 +144,9 @@ function saveMessage_(d, page) {
   const sh = book_().getSheetByName('Messages');
   // Leading "'" stops a message like "=HYPERLINK(...)" being run as a formula.
   const safe = (v) => (/^[=+\-@]/.test(v) ? "'" + v : v);
-  sh.appendRow([new Date(), safe(d.name), safe(d.email), safe(d.subject), safe(d.message), 'New', String(page || '').slice(0, 200), '']);
-  return sh.getLastRow();
+  sh.appendRow([new Date(), safe(d.name), safe(d.email), safe(d.subject), safe(d.message), 'New', String(page || '').slice(0, 200)]);
 }
 
-function note_(row, text) {
-  try {
-    book_().getSheetByName('Messages').getRange(row, 8).setValue(String(text).slice(0, 500));
-  } catch (err) {
-    console.error(err);
-  }
-}
 
 /** True when more than FLOOD_PER_MIN requests arrived this minute (shared across all callers). */
 function flooded_() {

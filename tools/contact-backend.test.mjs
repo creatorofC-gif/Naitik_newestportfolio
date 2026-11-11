@@ -114,11 +114,11 @@ test('bad JSON is rejected', () => {
   assert.deepEqual(JSON.parse(JSON.stringify(ctx.doPost({ postData: { contents: '{nope' } }))), { ok: false, error: 'Bad request.' });
 });
 
-test('email failure after saving: visitor still told "ok", the error goes in Notes, no duplicate on retry', () => {
+test('email failure after saving: visitor still told "ok" and the message stays in the sheet', () => {
   const { post, sheets } = load({ mailFails: true });
   assert.deepEqual(post(good), { ok: true });
   assert.equal(sheets.Messages.length, 1);
-  assert.match(sheets.Messages[0][7], /email failed/); // Notes column
+  assert.equal(sheets.Messages[0].length, 7); // Received … Page, no Notes column
 });
 
 test('flood guard: past 30 requests a minute the backend does no work at all', () => {
