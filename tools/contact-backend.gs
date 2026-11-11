@@ -1,37 +1,3 @@
-/**
- * Portfolio contact backend — Google Sheets + Apps Script (free).
- *
- * The website's contact form POSTs here. For every message this script:
- *   1. checks it server-side (bots can skip the browser, so nothing from the browser is trusted):
- *      honeypot, time-to-fill, field rules, a real mail domain (DNS MX lookup), a flood guard,
- *      and rate limits per sender + per day,
- *   2. saves it as a row in the "Messages" sheet (rejected attempts are dropped, not stored),
- *   3. emails you a notification (Reply-To = the sender, so just hit Reply).
- * By choice there is no captcha and no automatic email to the sender: nothing here needs keys
- * or upkeep, and nothing lets a stranger make your Gmail email other people.
- *
- * ── Setup (about 5 minutes, once) ──────────────────────────────────────────────────────
- *  1. Signed in as naitikg1103@gmail.com, create a Google Sheet (sheets.new), name it e.g.
- *     "Portfolio messages".
- *  2. In the sheet: Extensions → Apps Script. Delete the sample code, paste this whole file, Save.
- *  3. Pick `setup` in the function dropdown → Run → approve the permissions (Google shows
- *     "unverified app" because it's your own script: Advanced → Go to project → Allow).
- *     This creates the Messages tab and links the script to this sheet
- *     (nothing to paste: the sheet ID is recorded automatically).
- *  4. Deploy → New deployment → type "Web app":
- *       Execute as: Me (naitikg1103@gmail.com)    Who has access: Anyone
- *     Deploy, and copy the Web app URL (https://script.google.com/macros/s/…/exec).
- *  5. On GitHub: repo Settings → Secrets and variables → Actions → Variables → add
- *       CONTACT_ENDPOINT = that Web app URL
- *  6. Push any commit (or re-run the Deploy workflow) so the site is rebuilt with the URL.
- *
- *  Editing later: change the code, then Deploy → Manage deployments → edit (pencil) →
- *  Version: New version → Deploy. The URL stays the same.
- *
- * Gmail limit for scripts on a personal account: ~100 recipients/day. Each message uses 1
- * (your notification), so CONFIG.maxPerDay keeps you well under it.
- */
-
 const CONFIG = {
   ownerEmail: 'naitikg1103@gmail.com',
   /** Total accepted messages per day (protects your Gmail sending quota). */
