@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="Naitik Gupta — Developer Portfolio">
+  <defs>
+    <radialGradient id="glow" cx="78%" cy="62%" r="55%">
+      <stop offset="0" stop-color="#C8F25C" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#C8F25C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E3E6EA"/>
+      <stop offset="1" stop-color="#8C949F"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E2227"/>
+      <stop offset="1" stop-color="#141619"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#1C2026" stroke-width="1"/>
+    </pattern>
+    <clipPath id="card"><rect width="1280" height="420" rx="24"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <rect width="1280" height="420" fill="#0E1012"/>
+    <rect width="1280" height="420" fill="url(#grid)"/>
+    <rect width="1280" height="420" fill="url(#glow)"/>
+
+    <!-- Left: title block -->
+    <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">
+      <text x="88" y="118" font-size="15" letter-spacing="4.5" fill="#C8F25C">DEVELOPER PORTFOLIO</text>
+      <rect x="88" y="134" width="44" height="2" fill="#C8F25C"/>
+    </g>
+    <text x="84" y="222" font-family="Georgia, 'Times New Roman', serif" font-size="86" fill="url(#metal)">Naitik Gupta</text>
+    <text x="88" y="270" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" fill="#ADB4BD">Computer Engineering student · Frontend developer</text>
+    <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="14" fill="#6C737E">
+      <text x="88" y="336">React · TypeScript · Three.js · Tailwind CSS</text>
+    </g>
+
+    <!-- Right: the contact-section computer, in outline -->
+    <g transform="translate(820 92)">
+      <rect width="360" height="226" rx="14" fill="url(#screen)" stroke="#353B44"/>
+      <rect x="10" y="10" width="340" height="206" rx="7" fill="#15181C"/>
+      <rect x="10" y="10" width="340" height="22" rx="7" fill="#0E1012"/>
+      <circle cx="24" cy="21" r="3.5" fill="#FF5F57"/>
+      <circle cx="36" cy="21" r="3.5" fill="#FEBC2E"/>
+      <circle cx="48" cy="21" r="3.5" fill="#28C840"/>
+      <!-- sidebar -->
+      <rect x="10" y="32" width="72" height="184" fill="#131518"/>
+      <rect x="20" y="44" width="52" height="12" rx="4" fill="#C8F25C"/>
+      <rect x="20" y="66" width="40" height="5" rx="2.5" fill="#3B4048"/>
+      <rect x="20" y="78" width="32" height="5" rx="2.5" fill="#292D34"/>
+      <rect x="20" y="90" width="36" height="5" rx="2.5" fill="#292D34"/>
+      <!-- compose lines -->
+      <g fill="#292D34">
+        <rect x="96" y="46" width="70" height="5" rx="2.5" fill="#515761"/>
+        <rect x="96" y="64" width="236" height="1"/>
+        <rect x="96" y="76" width="120" height="5" rx="2.5"/>
+        <rect x="96" y="92" width="236" height="1"/>
+        <rect x="96" y="104" width="150" height="5" rx="2.5"/>
+        <rect x="96" y="120" width="236" height="1"/>
+        <rect x="96" y="136" width="210" height="5" rx="2.5"/>
+        <rect x="96" y="148" width="180" height="5" rx="2.5"/>
+        <rect x="96" y="160" width="196" height="5" rx="2.5"/>
+      </g>
+      <rect x="96" y="186" width="44" height="16" rx="5" fill="#C8F25C"/>
+      <!-- stand -->
+      <path d="M156 226h48l8 34h-64z" fill="#1E2227"/>
+      <rect x="112" y="260" width="136" height="6" rx="3" fill="#262B32"/>
+    </g>
+
+    <rect x="0.5" y="0.5" width="1279" height="419" rx="23.5" fill="none" stroke="#262B32"/>
+  </g>
+</svg>
