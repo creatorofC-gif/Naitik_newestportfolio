@@ -246,7 +246,9 @@ export const ContactDirect: React.FC = () => {
 
   return (
     <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950 desk:h-[185vh]">
-      <div className="flex flex-col items-center justify-center overflow-hidden px-4 py-16 desk:sticky desk:top-0 desk:h-viewport desk:py-6">
+      {/* overflow-clip, not hidden: a hidden box can still be scrolled by the browser to reveal a
+          focused field, which slides the mail app inside the screen with no way to scroll it back */}
+      <div className="flex flex-col items-center justify-center overflow-clip px-4 py-16 desk:sticky desk:top-0 desk:h-viewport desk:py-6">
         {/* Desk light */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(200, 242, 92,0.09),transparent_60%)]" />
 
@@ -267,7 +269,7 @@ export const ContactDirect: React.FC = () => {
                 boxShadow: '0 40px 80px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.05)',
               }}
             >
-              <div className="relative h-[600px] overflow-hidden rounded-[10px] bg-obsidian-900 md:aspect-[16/10] md:h-auto">
+              <div className="relative h-[600px] overflow-clip rounded-[10px] bg-obsidian-900 md:aspect-[16/10] md:h-auto">
                 {/* Mail app */}
                 <div className="flex h-full flex-col text-left">
                   {/* Title bar */}
@@ -368,12 +370,6 @@ export const ContactDirect: React.FC = () => {
                         }}
                         onKeyDown={(e) => {
                           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send();
-                        }}
-                        onBlur={(e) => {
-                          // Keyboard closed: if iOS left the page nudged sideways, put it back flush.
-                          if (!e.currentTarget.contains(e.relatedTarget as Node | null) && window.scrollX !== 0) {
-                            window.scrollTo(0, window.scrollY);
-                          }
                         }}
                         className="flex h-full flex-col"
                       >

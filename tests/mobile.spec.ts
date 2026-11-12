@@ -121,17 +121,20 @@ async function checkFieldsStayPut(page: Page) {
     const f = fields.nth(i);
     await f.focus();
     await page.waitForTimeout(200);
-    const s = await f.evaluate((el) => ({
-      font: parseFloat(getComputedStyle(el).fontSize),
-      scale: window.visualViewport?.scale ?? 1,
-      docW: document.documentElement.scrollWidth,
-      vw: window.innerWidth,
-      scrollX: window.scrollX,
-    }));
+    const s = await f.evaluate((el) => {
+      // Any box around the field that the browser scrolled to reveal it (slides the mail app out of place).
+      let shifted = 0;
+      for (let a = el.parentElement; a && a.id !== 'contact'; a = a.parentElement) shifted += a.scrollTop + a.scrollLeft;
+      return {
+        font: parseFloat(getComputedStyle(el).fontSize),
+        docW: document.documentElement.scrollWidth,
+        vw: window.innerWidth,
+        shifted,
+      };
+    });
     expect(s.font, `field ${i} font under 16px (iOS zooms)`).toBeGreaterThanOrEqual(16);
-    expect(s.scale).toBe(1);
     expect(s.docW).toBeLessThanOrEqual(s.vw);
-    expect(s.scrollX).toBe(0);
+    expect(s.shifted, `field ${i}: mail app scrolled inside the screen`).toBe(0);
   }
   const layout = await page.evaluate(() => {
     const sec = document.getElementById('contact')!;

@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // iOS only: stops Safari zooming in when a form field is focused. iOS ignores this for pinch-zoom,
+      // so people can still zoom. Not on Android, where it would block pinch-zoom.
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (/Mac/.test(navigator.userAgent) && navigator.maxTouchPoints > 1))
+        document.querySelector('meta[name=viewport]').content += ', maximum-scale=1';
+    </script>
     <title>Naitik Gupta — Computer Engineering Student & Frontend Developer</title>
     <meta name="description" content="Portfolio of Naitik Gupta — Computer Engineering student building responsive web experiences, mobile applications, and practical software systems." />
     <!-- Google Fonts -->
