@@ -28,7 +28,8 @@ import { LIMITS, validateContact, domainAcceptsMail, emailDomain, rateLimitError
    browser sees it, and the backend does all the checking. If you redeploy
    the script as a *new* deployment, paste the new URL here.
 
-   Phones: no scroll animation and no pinning — the computer is a normal
+   Touch devices (phones in any orientation, tablets): no scroll animation,
+   no pinning, no transforms — the computer is a normal
    block on the page, so tapping a field and opening the keyboard behaves
    like any other form.
 
@@ -43,7 +44,9 @@ import { LIMITS, validateContact, domainAcceptsMail, emailDomain, rateLimitError
    ────────────────────────────────────────────────────────────── */
 
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxNuPsAywqROBg2U22_Dfkcf1g71B9YWY0WcZW8hCDGc25rhr7qzIA8s8aoJZktHXHBOg/exec';
-const PHONE = '(max-width: 767px)'; // matches Tailwind's md breakpoint used below
+// Mouse/trackpad desktops. Must match the `desk` screen in tailwind.config.js.
+// Everything else (phones in any orientation, tablets) gets a static form with no transforms.
+const DESK = '(min-width: 768px) and (hover: hover) and (pointer: fine)';
 const storage = () => {
   try {
     return window.localStorage;
@@ -125,9 +128,16 @@ export const ContactDirect: React.FC = () => {
         screenOffRef.current.style.visibility = power >= 1 ? 'hidden' : 'visible';
       }
     };
-    // Phones: show it finished and static. Scroll-linked motion fights the on-screen keyboard.
-    if (window.matchMedia(PHONE).matches) {
-      apply(1, 1);
+    // Touch devices: show it finished and static, with no transforms at all. Scroll-linked motion
+    // fights the on-screen keyboard, and transformed ancestors make iOS jump when a field is focused.
+    if (!window.matchMedia(DESK).matches) {
+      for (const el of [rigRef.current, headRef.current]) {
+        if (!el) continue;
+        el.style.transform = 'none';
+        el.style.opacity = '1';
+        el.style.willChange = 'auto';
+      }
+      if (screenOffRef.current) screenOffRef.current.style.visibility = 'hidden';
       return;
     }
     let lastRise = -1;
@@ -232,11 +242,11 @@ export const ContactDirect: React.FC = () => {
   };
 
   const field =
-    'w-full bg-transparent text-base md:text-[13px] text-ivory placeholder:text-slate-600 outline-none'; // <16px makes iOS zoom on focus
+    'w-full bg-transparent text-base desk:text-[13px] text-ivory placeholder:text-slate-600 outline-none'; // <16px makes iOS zoom on focus
 
   return (
-    <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950 md:h-[185vh]">
-      <div className="flex flex-col items-center justify-center overflow-hidden px-4 py-16 md:sticky md:top-0 md:h-viewport md:py-6">
+    <section id="contact" ref={sectionRef} aria-label="Contact" className="relative bg-obsidian-950 desk:h-[185vh]">
+      <div className="flex flex-col items-center justify-center overflow-hidden px-4 py-16 desk:sticky desk:top-0 desk:h-viewport desk:py-6">
         {/* Desk light */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(200, 242, 92,0.09),transparent_60%)]" />
 
@@ -247,7 +257,7 @@ export const ContactDirect: React.FC = () => {
           </h2>
         </div>
 
-        <div className="relative" style={{ perspective: '1600px' }}>
+        <div className="relative desk:[perspective:1600px]">
           <div ref={rigRef} className="origin-bottom will-change-transform" style={{ opacity: 0 }}>
             {/* ─── Monitor ─── */}
             <div
@@ -359,6 +369,12 @@ export const ContactDirect: React.FC = () => {
                         onKeyDown={(e) => {
                           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send();
                         }}
+                        onBlur={(e) => {
+                          // Keyboard closed: if iOS left the page nudged sideways, put it back flush.
+                          if (!e.currentTarget.contains(e.relatedTarget as Node | null) && window.scrollX !== 0) {
+                            window.scrollTo(0, window.scrollY);
+                          }
+                        }}
                         className="flex h-full flex-col"
                       >
                         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
@@ -393,7 +409,7 @@ export const ContactDirect: React.FC = () => {
                             tabIndex={-1}
                             autoComplete="off"
                             aria-hidden="true"
-                            className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
+                            className="pointer-events-none absolute left-0 top-0 h-px w-px opacity-0"
                           />
                         </div>
 

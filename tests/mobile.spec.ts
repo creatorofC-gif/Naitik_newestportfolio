@@ -110,3 +110,55 @@ test('contact form: blocks an address whose domain cannot receive mail', async (
 
   expect(errors, errors.join('\n')).toEqual([]);
 });
+
+/** Focusing a field must not zoom, slide sideways, or sit inside a moving/pinned scene. */
+async function checkFieldsStayPut(page: Page) {
+  await page.evaluate(() => document.getElementById('contact')!.scrollIntoView());
+  const fields = page.locator('#contact input:not([name="botcheck"]), #contact textarea');
+  const count = await fields.count();
+  expect(count).toBe(4);
+  for (let i = 0; i < count; i++) {
+    const f = fields.nth(i);
+    await f.focus();
+    await page.waitForTimeout(200);
+    const s = await f.evaluate((el) => ({
+      font: parseFloat(getComputedStyle(el).fontSize),
+      scale: window.visualViewport?.scale ?? 1,
+      docW: document.documentElement.scrollWidth,
+      vw: window.innerWidth,
+      scrollX: window.scrollX,
+    }));
+    expect(s.font, `field ${i} font under 16px (iOS zooms)`).toBeGreaterThanOrEqual(16);
+    expect(s.scale).toBe(1);
+    expect(s.docW).toBeLessThanOrEqual(s.vw);
+    expect(s.scrollX).toBe(0);
+  }
+  const layout = await page.evaluate(() => {
+    const sec = document.getElementById('contact')!;
+    const pinned = Array.from(sec.querySelectorAll('*')).some((e) => getComputedStyle(e).position === 'sticky');
+    const transformed = Array.from(sec.querySelectorAll('*')).some((e) => {
+      const cs = getComputedStyle(e);
+      return e.querySelector('form') && (cs.transform !== 'none' || cs.perspective !== 'none');
+    });
+    return { pinned, transformed };
+  });
+  expect(layout.pinned, 'contact scene pinned on a touch device').toBe(false);
+  expect(layout.transformed, 'form sits inside a transformed element').toBe(false);
+}
+
+test('contact form: focusing fields does not zoom or move the page', async ({ page }) => {
+  const errors: string[] = [];
+  await openSite(page, errors);
+  await waitForIntro(page);
+  await checkFieldsStayPut(page);
+  expect(errors, errors.join('\n')).toEqual([]);
+});
+
+test('contact form: same on a phone turned sideways', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 844, height: 390 });
+  await openSite(page, errors);
+  await waitForIntro(page);
+  await checkFieldsStayPut(page);
+  expect(errors, errors.join('\n')).toEqual([]);
+});

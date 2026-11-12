@@ -6,11 +6,14 @@
   html {
     /* smooth scrolling is handled by Lenis (utils/smoothScroll.ts) */
     font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+    /* clip (not hidden): no sideways panning on iOS when the keyboard opens, and sticky keeps working */
+    overflow-x: clip;
   }
-  
+
   body {
     @apply bg-obsidian-950 text-slate-100 antialiased selection:bg-gold-accent selection:text-black;
     overflow-x: hidden;
+    overflow-x: clip;
   }
 }
 

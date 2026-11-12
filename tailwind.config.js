@@ -45,6 +45,11 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        // Mouse/trackpad desktops only. Touch devices (phones in any orientation, tablets) are excluded,
+        // so they never get scroll-pinned scenes or sub-16px inputs. Keep in sync with DESK in ContactDirect.tsx.
+        desk: { raw: '(min-width: 768px) and (hover: hover) and (pointer: fine)' },
+      },
       colors: {
         obsidian: ink,
         gold: accent,
